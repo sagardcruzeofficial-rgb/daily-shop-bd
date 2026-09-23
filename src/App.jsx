@@ -1,39 +1,47 @@
-import React, { useState } from 'react';
-import { StoreProvider, useStore } from './context/StoreContext';
+import React, { useContext } from 'react';
 import Navbar from './components/Navbar';
-import StoreView from './components/StoreView';
+import ProductCard from './components/ProductCard';
+import ProductDetailModal from './components/ProductDetailModal';
+import Footer from './components/Footer';
 import AdminView from './components/AdminView';
-import CartModal from './components/CartModal';
+import { StoreContext } from './context/StoreContext';
 
-function MainContent() {
-  const { viewMode } = useStore();
-  const [isCartOpen, setIsCartOpen] = useState(false);
+function AppContent() {
+  const { products, activeTab } = useContext(StoreContext);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col font-sans">
-      {/* Header / Navbar */}
-      <Navbar onOpenCart={() => setIsCartOpen(true)} />
+    <div className="min-h-screen flex flex-col justify-between bg-gray-50">
+      <div>
+        <Navbar />
+        
+        <main className="max-w-7xl mx-auto px-4 py-8">
+          {activeTab === 'Home' && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6 text-gray-800">Featured Products</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {products.map((item) => (
+                  <ProductCard key={item.id} product={item} />
+                ))}
+              </div>
+            </div>
+          )}
 
-      {/* Main Content Area */}
-      <main className="flex-1">
-        {viewMode === 'store' ? <StoreView /> : <AdminView />}
-      </main>
+          {activeTab !== 'Home' && (
+            <div className="bg-white p-8 rounded-lg shadow">
+              <h2 className="text-3xl font-bold mb-4 text-gray-800">{activeTab}</h2>
+              <p className="text-gray-600">This is the {activeTab} page for Daily Shop BD.</p>
+            </div>
+          )}
+        </main>
+      </div>
 
-      {/* Shopping Cart Drawer / Modal */}
-      <CartModal isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 text-center py-6 text-xs border-t border-gray-800">
-        <p>© {new Date().getFullYear()} Daily Shop BD. All rights reserved.</p>
-      </footer>
+      <ProductDetailModal />
+      <AdminView />
+      <Footer />
     </div>
   );
 }
 
 export default function App() {
-  return (
-    <StoreProvider>
-      <MainContent />
-    </StoreProvider>
-  );
+  return <AppContent />;
 }
