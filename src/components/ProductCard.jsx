@@ -7,38 +7,44 @@ export default function ProductCard({ product }) {
   return (
     <div 
       onClick={() => setSelectedProduct(product)}
-      className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col justify-between group cursor-pointer"
+      className="bg-white rounded border border-gray-200 p-4 hover:shadow-xl transition duration-300 flex flex-col justify-between cursor-pointer group"
     >
-      <div className="relative overflow-hidden bg-gray-100">
-        <img 
-          src={product.image} 
-          alt={product.title} 
-          className="w-full h-52 object-cover group-hover:scale-105 transition duration-500" 
-        />
-        <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-xs font-bold text-gray-700 px-2.5 py-1 rounded-full shadow-sm">
+      <div>
+        {/* Image Container */}
+        <div className="w-full h-56 flex items-center justify-center overflow-hidden bg-gray-50 mb-3 rounded">
+          <img 
+            src={product.image} 
+            alt={product.title} 
+            className="max-h-full object-contain group-hover:scale-105 transition duration-300" 
+          />
+        </div>
+
+        {/* Category Badge */}
+        <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block mb-1">
           {product.category}
         </span>
-      </div>
 
-      <div className="p-4 flex flex-col flex-1 justify-between">
-        <div>
-          <h3 className="font-semibold text-gray-800 text-base mb-1 line-clamp-1 group-hover:text-blue-600 transition">
-            {product.title}
-          </h3>
-          <p className="text-xs text-gray-500 mb-3 line-clamp-2">{product.description}</p>
+        {/* Title */}
+        <h3 className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 group-hover:text-[#c45500] leading-snug">
+          {product.title}
+        </h3>
+
+        {/* Star Rating */}
+        <div className="flex items-center gap-1 text-yellow-500 text-xs mb-2">
+          ★★★★☆ <span className="text-gray-500 text-xs ml-1">(128)</span>
         </div>
 
-        <div>
-          <div className="flex items-baseline gap-2 mb-3">
-            <span className="text-xl font-black text-blue-600">৳ {product.price}</span>
-            <span className="text-xs text-gray-400 line-through">৳ {product.price + 200}</span>
-          </div>
-
-          <button className="w-full bg-slate-900 group-hover:bg-blue-600 text-white text-sm py-2.5 rounded-lg font-semibold transition duration-300 shadow-sm">
-            View Details
-          </button>
+        {/* Price */}
+        <div className="flex items-baseline gap-2 mb-3">
+          <span className="text-xs text-gray-600">BDT</span>
+          <span className="text-2xl font-bold text-gray-900">৳{product.price}</span>
+          <span className="text-xs text-gray-400 line-through">৳{product.price + 250}</span>
         </div>
       </div>
+
+      <button className="w-full bg-[#ffd814] hover:bg-[#f7ca00] active:bg-[#f0b800] text-gray-900 text-xs font-bold py-2 rounded-full border border-[#fcd200] transition shadow-sm">
+        See Options & Buy
+      </button>
     </div>
   );
 }
