@@ -9,66 +9,60 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-[#131921] text-white text-sm font-sans mt-16">
-      {/* Back To Top Bar */}
+    <footer className="bg-[#131921] text-white text-xs font-sans mt-16 border-t-4 border-[#f57224]">
+      {/* Back to top */}
       <button 
         onClick={scrollToTop}
-        className="w-full bg-[#37475a] hover:bg-[#485769] py-3 text-center text-xs font-bold tracking-wide transition"
+        className="w-full bg-[#232f3e] hover:bg-[#37475a] py-3 text-center text-xs font-bold tracking-wider text-gray-200 transition"
       >
-        Back to top
+        BACK TO TOP
       </button>
 
-      {/* Footer Main Navigation Links */}
-      <div className="bg-[#232f3e] border-b border-gray-700">
-        <div className="max-w-[1200px] mx-auto px-6 py-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-          <div>
-            <h4 className="font-bold text-white mb-3 text-base">Get to Know Us</h4>
-            <ul className="space-y-2 text-xs text-gray-300">
-              <li><button onClick={() => setActiveTab('About Us')} className="hover:underline">About Daily Shop BD</button></li>
-              <li><button onClick={() => setActiveTab('Home')} className="hover:underline">Careers</button></li>
-              <li><button onClick={() => setActiveTab('Privacy Policy')} className="hover:underline">Privacy Policy</button></li>
-            </ul>
-          </div>
+      {/* Amazon Footer Links */}
+      <div className="max-w-[1300px] mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+        <div>
+          <h4 className="font-bold text-white text-sm mb-4 border-b border-gray-700 pb-2">Customer Care</h4>
+          <ul className="space-y-2 text-gray-400">
+            <li><button onClick={() => setActiveTab('Contact Us')} className="hover:text-[#f57224] transition">Help Center</button></li>
+            <li><button onClick={() => setActiveTab('Contact Us')} className="hover:text-[#f57224] transition">How to Buy</button></li>
+            <li><button onClick={() => setActiveTab('Contact Us')} className="hover:text-[#f57224] transition">Returns & Refunds</button></li>
+            <li><button onClick={() => setActiveTab('Contact Us')} className="hover:text-[#f57224] transition">Contact Us</button></li>
+          </ul>
+        </div>
 
-          <div>
-            <h4 className="font-bold text-white mb-3 text-base">Make Money with Us</h4>
-            <ul className="space-y-2 text-xs text-gray-300">
-              <li><button onClick={() => setActiveTab('Home')} className="hover:underline">Sell on Daily Shop BD</button></li>
-              <li><button onClick={() => setActiveTab('Home')} className="hover:underline">Become an Affiliate</button></li>
-              <li><button onClick={() => setActiveTab('Home')} className="hover:underline">Advertise Your Products</button></li>
-            </ul>
-          </div>
+        <div>
+          <h4 className="font-bold text-white text-sm mb-4 border-b border-gray-700 pb-2">Daily Shop BD</h4>
+          <ul className="space-y-2 text-gray-400">
+            <li><button onClick={() => setActiveTab('About Us')} className="hover:text-[#f57224] transition">About Daily Shop BD</button></li>
+            <li><button onClick={() => setActiveTab('Privacy Policy')} className="hover:text-[#f57224] transition">Terms & Conditions</button></li>
+            <li><button onClick={() => setActiveTab('Privacy Policy')} className="hover:text-[#f57224] transition">Privacy Policy</button></li>
+          </ul>
+        </div>
 
-          <div>
-            <h4 className="font-bold text-white mb-3 text-base">Payment Products</h4>
-            <ul className="space-y-2 text-xs text-gray-300">
-              <li><span className="text-gray-400">bKash / Nagad Accepted</span></li>
-              <li><span className="text-gray-400">Cash on Delivery</span></li>
-              <li><span className="text-gray-400">Shop with Points</span></li>
-            </ul>
+        <div>
+          <h4 className="font-bold text-white text-sm mb-4 border-b border-gray-700 pb-2">Payment Methods</h4>
+          <p className="text-gray-400 mb-2 leading-relaxed">We support bKash, Nagad, Rocket, Credit/Debit Cards, and Cash on Delivery across Bangladesh.</p>
+          <div className="flex gap-2 text-lg">
+            <span className="bg-gray-800 px-2 py-1 rounded">💳</span>
+            <span className="bg-gray-800 px-2 py-1 rounded">📱</span>
+            <span className="bg-gray-800 px-2 py-1 rounded">💵</span>
           </div>
+        </div>
 
-          <div>
-            <h4 className="font-bold text-white mb-3 text-base">Let Us Help You</h4>
-            <ul className="space-y-2 text-xs text-gray-300">
-              <li><button onClick={() => setActiveTab('Contact Us')} className="hover:underline">Help & Support</button></li>
-              <li><button onClick={() => setActiveTab('Home')} className="hover:underline">Shipping Rates & Policies</button></li>
-              <li><button onClick={() => setActiveTab('Contact Us')} className="hover:underline">Returns & Replacements</button></li>
-            </ul>
-          </div>
+        <div>
+          <h4 className="font-bold text-white text-sm mb-4 border-b border-gray-700 pb-2">Verified & Secure</h4>
+          <p className="text-gray-400 mb-2">100% Authentic Products & Trusted Delivery.</p>
         </div>
       </div>
 
-      {/* Copyright & Credit Line */}
-      <div className="bg-[#131921] py-8 text-center text-xs text-gray-400 space-y-2">
-        <div className="flex justify-center gap-4 mb-2">
-          <button onClick={() => setActiveTab('Privacy Policy')} className="hover:underline">Conditions of Use</button>
-          <button onClick={() => setActiveTab('Privacy Policy')} className="hover:underline">Privacy Notice</button>
-        </div>
-        <p className="text-gray-300 font-semibold text-sm">
+      {/* Credit Section */}
+      <div className="bg-[#0f1111] py-6 text-center text-gray-400 border-t border-gray-800 space-y-2">
+        <p className="text-sm font-semibold text-gray-200">
           A Website Created by Sagar Anthony Dcruze
         </p>
-        <p className="text-gray-500">© 2026, DailyShopBD.com, Inc. or its affiliates</p>
+        <p className="text-[11px] text-gray-500">
+          © 2026 DailyShopBD.com — All Rights Reserved.
+        </p>
       </div>
     </footer>
   );
