@@ -5,6 +5,19 @@ import { useStore } from '../context/StoreContext';
 export default function Navbar({ onOpenCart }) {
   const { cart, viewMode, setViewMode } = useStore();
 
+  const handleAdminAccess = () => {
+    if (viewMode === 'admin') {
+      setViewMode('store');
+    } else {
+      const password = prompt('এডমিন প্যানেলে ঢুকতে সিক্রেট পাসওয়ার্ড দিন:');
+      if (password === '1234') { // আপনার পছন্দমতো পাসওয়ার্ড দিতে পারেন
+        setViewMode('admin');
+      } else if (password !== null) {
+        alert('ভুল পাসওয়ার্ড!');
+      }
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50">
       {/* Top Main Navigation Bar */}
@@ -18,7 +31,7 @@ export default function Navbar({ onOpenCart }) {
           <span className="font-bold text-lg hidden sm:inline text-gray-100">Shop BD</span>
         </div>
 
-        {/* Search Bar (Amazon Style) */}
+        {/* Search Bar */}
         <div className="flex-1 max-w-2xl flex items-center bg-white rounded-md overflow-hidden text-gray-800">
           <input 
             type="text" 
@@ -33,9 +46,9 @@ export default function Navbar({ onOpenCart }) {
         {/* Action Controls */}
         <div className="flex items-center gap-4 text-sm font-semibold">
           
-          {/* Mode Switcher: Store / Admin */}
+          {/* Protected Admin Switcher */}
           <button 
-            onClick={() => setViewMode(viewMode === 'store' ? 'admin' : 'store')}
+            onClick={handleAdminAccess}
             className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded border border-gray-700 text-amber-400 transition"
           >
             {viewMode === 'store' ? (
@@ -69,7 +82,7 @@ export default function Navbar({ onOpenCart }) {
         </div>
       </div>
 
-      {/* Sub Header / Category Bar */}
+      {/* Sub Header */}
       <div className="bg-gray-800 text-white text-xs px-4 py-2 flex items-center gap-6 overflow-x-auto whitespace-nowrap">
         <button className="flex items-center gap-1 font-bold hover:text-amber-400">
           <Menu className="w-4 h-4" /> All Categories
