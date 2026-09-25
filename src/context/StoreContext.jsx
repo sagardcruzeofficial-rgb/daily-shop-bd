@@ -1,11 +1,20 @@
 import React, { createContext, useState, useEffect } from 'react';
+import { db } from '../firebase';
+import { 
+  collection, 
+  getDocs, 
+  addDoc, 
+  deleteDoc, 
+  doc, 
+  updateDoc 
+} from 'firebase/firestore';
 
 export const StoreContext = createContext();
 
 export const StoreProvider = ({ children }) => {
   const defaultProducts = [
     {
-      id: 1,
+      id: '1',
       title: 'Premium Men Casual T-Shirt',
       price: 490,
       image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500&auto=format&fit=crop&q=60',
@@ -13,10 +22,11 @@ export const StoreProvider = ({ children }) => {
       subCategory: 'T-Shirts',
       sizes: ['M', 'L', 'XL', 'XXL'],
       description: '100% Premium Cotton stylish t-shirt for daily use.',
-      supplierUrl: 'https://supplier-website.com/item/tshirt-101' // 👈 Hidden from visitors
+      supplierUrl: 'https://supplier-website.com/item/tshirt-101',
+      inStock: true
     },
     {
-      id: 2,
+      id: '2',
       title: 'Wireless Bluetooth Headphone Bass Edition',
       price: 1250,
       image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&auto=format&fit=crop&q=60',
@@ -24,37 +34,16 @@ export const StoreProvider = ({ children }) => {
       subCategory: 'Audio',
       sizes: ['Standard'],
       description: 'High bass bluetooth headphone with long battery life.',
-      supplierUrl: 'https://supplier-website.com/item/headphone-202' // 👈 Hidden from visitors
-    },
-    {
-      id: 3,
-      title: 'Smart Watch Series 8 Ultra Fitness Tracker',
-      price: 2100,
-      image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=60',
-      category: 'Gadgets',
-      subCategory: 'Smart Wearables',
-      sizes: ['Standard'],
-      description: 'Waterproof smartwatch with health sensors.',
-      supplierUrl: 'https://supplier-website.com/item/watch-303' // 👈 Hidden from visitors
-    },
-    {
-      id: 4,
-      title: 'Pro Running Sneakers Shoes for Men',
-      price: 1850,
-      image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&auto=format&fit=crop&q=60',
-      category: 'Fashion',
-      subCategory: 'Shoes',
-      sizes: ['40', '41', '42', '43'],
-      description: 'Lightweight breathable mesh running shoes.',
-      supplierUrl: 'https://supplier-website.com/item/shoes-404' // 👈 Hidden from visitors
+      supplierUrl: 'https://supplier-website.com/item/headphone-202',
+      inStock: true
     }
   ];
 
   const defaultFooterLinks = [
-    { id: 1, title: 'About Us', url: '#about' },
-    { id: 2, title: 'Privacy Policy', url: '#privacy' },
-    { id: 3, title: 'Contact Us', url: '#contact' },
-    { id: 4, title: 'Terms & Conditions', url: '#terms' }
+    { id: '1', title: 'About Us', url: '#about' },
+    { id: '2', title: 'Privacy Policy', url: '#privacy' },
+    { id: '3', title: 'Contact Us', url: '#contact' },
+    { id: '4', title: 'Terms & Conditions', url: '#terms' }
   ];
 
   const defaultCategoryData = [
@@ -63,41 +52,10 @@ export const StoreProvider = ({ children }) => {
     { name: 'Gadgets', subCategories: ['Smart Wearables', 'Drones', 'Gimbal'] }
   ];
 
-  const [products, setProducts] = useState(() => {
-    try {
-      const local = localStorage.getItem('daily_shop_products');
-      return local ? JSON.parse(local) : defaultProducts;
-    } catch {
-      return defaultProducts;
-    }
-  });
-
-  const [orders, setOrders] = useState(() => {
-    try {
-      const local = localStorage.getItem('daily_shop_orders');
-      return local ? JSON.parse(local) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  const [footerLinks, setFooterLinks] = useState(() => {
-    try {
-      const local = localStorage.getItem('daily_shop_footer');
-      return local ? JSON.parse(local) : defaultFooterLinks;
-    } catch {
-      return defaultFooterLinks;
-    }
-  });
-
-  const [categoryData, setCategoryData] = useState(() => {
-    try {
-      const local = localStorage.getItem('daily_shop_category_data');
-      return local ? JSON.parse(local) : defaultCategoryData;
-    } catch {
-      return defaultCategoryData;
-    }
-  });
+  const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [footerLinks, setFooterLinks] = useState(defaultFooterLinks);
+  const [categoryData, setCategoryData] = useState(defaultCategoryData);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -106,24 +64,35 @@ export const StoreProvider = ({ children }) => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [activeTab, setActiveTab] = useState('Home');
   const [checkoutItems, setCheckoutItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  // Fetch data from Firebase Firestore
   useEffect(() => {
-    localStorage.setItem('daily_shop_products', JSON.stringify(products));
-  }, [products]);
+    const fetchData = async () => {
+      try {
+        const prodSnap = await getDocs(collection(db, 'products'));
+        if (!prodSnap.empty) {
+          const prodList = prodSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setProducts(prodList);
+        } else {
+          setProducts(defaultProducts);
+        }
 
-  useEffect(() => {
-    localStorage.setItem('daily_shop_orders', JSON.stringify(orders));
-  }, [orders]);
+        const orderSnap = await getDocs(collection(db, 'orders'));
+        if (!orderSnap.empty) {
+          const orderList = orderSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setOrders(orderList);
+        }
+      } catch (error) {
+        console.error("Firebase fetch error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  useEffect(() => {
-    localStorage.setItem('daily_shop_footer', JSON.stringify(footerLinks));
-  }, [footerLinks]);
+    fetchData();
+  }, []);
 
-  useEffect(() => {
-    localStorage.setItem('daily_shop_category_data', JSON.stringify(categoryData));
-  }, [categoryData]);
-
-  // Derive categories for simple selection
   const categories = categoryData.map(c => c.name);
 
   const addToCart = (product) => {
@@ -136,31 +105,73 @@ export const StoreProvider = ({ children }) => {
 
   const clearCart = () => setCart([]);
 
-  const addProduct = (newProd) => {
-    setProducts((prev) => [{ ...newProd, id: Date.now() }, ...prev]);
+  // Firebase Database Operation for Add Product
+  const addProduct = async (newProd) => {
+    try {
+      const docRef = await addDoc(collection(db, 'products'), {
+        ...newProd,
+        createdAt: new Date().toISOString()
+      });
+      setProducts((prev) => [{ ...newProd, id: docRef.id }, ...prev]);
+    } catch (error) {
+      console.error("Error adding product:", error);
+    }
   };
 
-  const deleteProduct = (id) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+  // Firebase Database Operation for Delete Product
+  const deleteProduct = async (id) => {
+    try {
+      await deleteDoc(doc(db, 'products', id));
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+    } catch (error) {
+      console.error("Error deleting product:", error);
+    }
   };
 
-  const addOrder = (orderData) => {
-    setOrders((prev) => [{ ...orderData, id: Date.now(), date: new Date().toLocaleString() }, ...prev]);
+  // Automated Stock Scraper Call
+  const checkAndUpdateStock = async (productId, supplierUrl) => {
+    if (!supplierUrl) return;
+    try {
+      const res = await fetch(`/api/check-stock?url=${encodeURIComponent(supplierUrl)}`);
+      const data = await res.json();
+      if (data && typeof data.inStock === 'boolean') {
+        const prodRef = doc(db, 'products', productId);
+        await updateDoc(prodRef, { inStock: data.inStock });
+
+        setProducts(prev => prev.map(p => p.id === productId ? { ...p, inStock: data.inStock } : p));
+      }
+    } catch (err) {
+      console.error("Stock check failed:", err);
+    }
   };
 
-  const deleteOrder = (id) => {
-    setOrders((prev) => prev.filter((o) => o.id !== id));
+  const addOrder = async (orderData) => {
+    try {
+      const newOrder = { ...orderData, date: new Date().toLocaleString() };
+      const docRef = await addDoc(collection(db, 'orders'), newOrder);
+      setOrders((prev) => [{ ...newOrder, id: docRef.id }, ...prev]);
+    } catch (error) {
+      console.error("Error adding order:", error);
+    }
+  };
+
+  const deleteOrder = async (id) => {
+    try {
+      await deleteDoc(doc(db, 'orders', id));
+      setOrders((prev) => prev.filter((o) => o.id !== id));
+    } catch (error) {
+      console.error("Error deleting order:", error);
+    }
   };
 
   const addFooterLink = (link) => {
-    setFooterLinks((prev) => [...prev, { ...link, id: Date.now() }]);
+    setFooterLinks((prev) => [...prev, { ...link, id: Date.now().toString() }]);
   };
 
   const deleteFooterLink = (id) => {
     setFooterLinks((prev) => prev.filter((f) => f.id !== id));
   };
 
-  // Category & Sub-category Management
   const addCategory = (categoryName) => {
     if (!categoryName) return;
     if (!categoryData.some(c => c.name.toLowerCase() === categoryName.toLowerCase())) {
@@ -206,11 +217,10 @@ export const StoreProvider = ({ children }) => {
     setActiveTab('Checkout');
   };
 
-  // Filtered Products Search & Category Logic
   const filteredProducts = products.filter((p) => {
     const matchesSearch =
-      p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (p.subCategory && p.subCategory.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -225,10 +235,11 @@ export const StoreProvider = ({ children }) => {
       products, filteredProducts, categories, categoryData, selectedCategory, setSelectedCategory,
       selectedSubCategory, setSelectedSubCategory, searchQuery, setSearchQuery, cart,
       selectedProduct, setSelectedProduct, activeTab, setActiveTab,
-      orders, footerLinks, checkoutItems, startCheckout,
+      orders, footerLinks, checkoutItems, loading, startCheckout,
       addToCart, removeFromCart, clearCart, addProduct, deleteProduct,
       addOrder, deleteOrder, addFooterLink, deleteFooterLink,
-      addCategory, deleteCategory, addSubCategory, deleteSubCategory
+      addCategory, deleteCategory, addSubCategory, deleteSubCategory,
+      checkAndUpdateStock
     }}>
       {children}
     </StoreContext.Provider>
