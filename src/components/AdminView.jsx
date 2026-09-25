@@ -17,6 +17,7 @@ export default function AdminView() {
   const [description, setDescription] = useState('');
   const [supplierUrl, setSupplierUrl] = useState('');
   const [sizesInput, setSizesInput] = useState('M, L, XL, XXL');
+  const [isFetching, setIsFetching] = useState(false);
 
   // Category & Subcategory Inputs
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -33,6 +34,40 @@ export default function AdminView() {
       if (!targetCategoryForSub) setTargetCategoryForSub(categoryData[0].name);
     }
   }, [categoryData]);
+
+  // 🔄 Check Stock & Auto Fetch Sizes via API
+  const handleCheckStock = async () => {
+    if (!supplierUrl) {
+      alert('অনুগ্রহ করে প্রথমে Hidden Supplier Link-টি দিন!');
+      return;
+    }
+
+    setIsFetching(true);
+    try {
+      const res = await fetch('/api/check-stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: supplierUrl }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        if (data.sizes && data.sizes.length > 0) {
+          setSizesInput(data.sizes.join(', '));
+          alert(`সফলভাবে সাইজ পাওয়া গেছে: ${data.sizes.join(', ')}`);
+        } else {
+          alert('কোনো সাইজ পাওয়া যায়নি বা প্রোডাক্ট আউট অফ স্টক!');
+        }
+      } else {
+        alert('স্টক ডাটা আনা সম্ভব হয়নি। লিঙ্কটি সঠিক কি না তা দেখুন।');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('সাপ্লায়ার সাইটে কানেক্ট করা যায়নি!');
+    } finally {
+      setIsFetching(false);
+    }
+  };
 
   const handleProductSubmit = (e) => {
     e.preventDefault();
@@ -177,6 +212,26 @@ export default function AdminView() {
               ))}
             </select>
 
+            {/* Hidden Supplier URL Input & Auto Fetch Button */}
+            <div className="bg-orange-50 p-2.5 rounded-xl border border-orange-200 space-y-2">
+              <label className="block text-[10px] font-bold text-orange-800 uppercase">🔒 Hidden Supplier Link (Dropship URL):</label>
+              <input 
+                type="url" 
+                placeholder="https://supplier-site.com/product-link" 
+                value={supplierUrl} 
+                onChange={(e) => setSupplierUrl(e.target.value)} 
+                className="w-full border border-orange-300 p-1.5 text-xs rounded bg-white focus:outline-none" 
+              />
+              <button
+                type="button"
+                onClick={handleCheckStock}
+                disabled={isFetching}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-1.5 rounded text-[11px] transition shadow flex items-center justify-center gap-1"
+              >
+                {isFetching ? '⏳ Checking Stock & Sizes...' : '🔍 Check Stock & Auto-Fetch Sizes'}
+              </button>
+            </div>
+
             {/* Sizes Input */}
             <label className="block text-[11px] font-bold text-gray-600">Available Sizes (Comma Separated):</label>
             <input 
@@ -184,24 +239,11 @@ export default function AdminView() {
               placeholder="e.g. M, L, XL, XXL or 40, 41, 42" 
               value={sizesInput} 
               onChange={(e) => setSizesInput(e.target.value)} 
-              className="w-full border p-2 text-xs rounded" 
+              className="w-full border p-2 text-xs rounded bg-emerald-50/40 font-semibold text-emerald-800 border-emerald-300" 
             />
 
-            {/* Hidden Supplier URL Input */}
-            <div className="bg-orange-50 p-2 rounded-lg border border-orange-200">
-              <label className="block text-[10px] font-bold text-orange-700 uppercase">🔒 Hidden Supplier Link (Dropship URL):</label>
-              <input 
-                type="url" 
-                placeholder="https://supplier-site.com/product-link" 
-                value={supplierUrl} 
-                onChange={(e) => setSupplierUrl(e.target.value)} 
-                className="w-full border p-1.5 text-xs rounded mt-1 bg-white" 
-              />
-              <span className="text-[9px] text-gray-500 italic block mt-0.5">* Visitors will never see this link.</span>
-            </div>
-
             <textarea placeholder="Description (Search tags will automatically read this)" value={description} onChange={(e) => setDescription(e.target.value)} required className="w-full border p-2 text-xs rounded" rows={3}></textarea>
-            <button className="w-full bg-[#f57224] text-white font-bold py-2 rounded text-xs hover:bg-orange-600 transition">Publish Product</button>
+            <button className="w-full bg-[#f57224] text-white font-bold py-2 rounded text-xs hover:bg-orange-600 transition shadow">Publish Product</button>
           </form>
         </div>
 
