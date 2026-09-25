@@ -71,8 +71,22 @@ export const StoreProvider = ({ children }) => {
 
   const categories = categoryData.map(c => c.name);
 
+  // Cart Selection Logic
   const addToCart = (product) => {
-    setCart((prev) => [...prev, product]);
+    setCart((prev) => [...prev, { ...product, selected: true }]);
+  };
+
+  const toggleSelectItem = (index) => {
+    setCart((prev) => prev.map((item, i) => {
+      if (i === index) {
+        return { ...item, selected: item.selected === undefined ? false : !item.selected };
+      }
+      return item;
+    }));
+  };
+
+  const toggleSelectAll = (isSelected) => {
+    setCart((prev) => prev.map((item) => ({ ...item, selected: isSelected })));
   };
 
   const removeFromCart = (index) => {
@@ -96,10 +110,8 @@ export const StoreProvider = ({ children }) => {
 
   // Fixed Delete Function
   const deleteProduct = async (id) => {
-    // Instantly remove from local UI state
     setProducts((prev) => prev.filter((p) => p.id !== id));
 
-    // Try deleting from Firestore if valid doc ID
     try {
       await deleteDoc(doc(db, 'products', id));
     } catch (error) {
@@ -192,7 +204,13 @@ export const StoreProvider = ({ children }) => {
   };
 
   const startCheckout = (items) => {
-    setCheckoutItems(items);
+    // Filter only selected items for checkout
+    const itemsToBuy = (items || cart).filter(item => item.selected !== false);
+    if (itemsToBuy.length === 0) {
+      alert("দয়া করে কমপক্ষে একটি প্রোডাক্ট সিলেক্ট করুন!");
+      return;
+    }
+    setCheckoutItems(itemsToBuy);
     setActiveTab('Checkout');
   };
 
@@ -218,7 +236,7 @@ export const StoreProvider = ({ children }) => {
       addToCart, removeFromCart, clearCart, addProduct, deleteProduct,
       addOrder, deleteOrder, addFooterLink, deleteFooterLink,
       addCategory, deleteCategory, addSubCategory, deleteSubCategory,
-      checkAndUpdateStock
+      checkAndUpdateStock, toggleSelectItem, toggleSelectAll
     }}>
       {children}
     </StoreContext.Provider>
