@@ -12,32 +12,8 @@ import {
 export const StoreContext = createContext();
 
 export const StoreProvider = ({ children }) => {
-  const defaultProducts = [
-    {
-      id: '1',
-      title: 'Premium Men Casual T-Shirt',
-      price: 490,
-      image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500&auto=format&fit=crop&q=60',
-      category: 'Fashion',
-      subCategory: 'T-Shirts',
-      sizes: ['M', 'L', 'XL', 'XXL'],
-      description: '100% Premium Cotton stylish t-shirt for daily use.',
-      supplierUrl: 'https://supplier-website.com/item/tshirt-101',
-      inStock: true
-    },
-    {
-      id: '2',
-      title: 'Wireless Bluetooth Headphone Bass Edition',
-      price: 1250,
-      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&auto=format&fit=crop&q=60',
-      category: 'Electronics',
-      subCategory: 'Audio',
-      sizes: ['Standard'],
-      description: 'High bass bluetooth headphone with long battery life.',
-      supplierUrl: 'https://supplier-website.com/item/headphone-202',
-      inStock: true
-    }
-  ];
+  // Empty default products so dummy items don't block deletion
+  const defaultProducts = [];
 
   const defaultFooterLinks = [
     { id: '1', title: 'About Us', url: '#about' },
@@ -118,13 +94,16 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
-  // Firebase Database Operation for Delete Product
+  // Fixed Delete Function
   const deleteProduct = async (id) => {
+    // Instantly remove from local UI state
+    setProducts((prev) => prev.filter((p) => p.id !== id));
+
+    // Try deleting from Firestore if valid doc ID
     try {
       await deleteDoc(doc(db, 'products', id));
-      setProducts((prev) => prev.filter((p) => p.id !== id));
     } catch (error) {
-      console.error("Error deleting product:", error);
+      console.error("Error deleting product from Firebase:", error);
     }
   };
 
@@ -156,11 +135,11 @@ export const StoreProvider = ({ children }) => {
   };
 
   const deleteOrder = async (id) => {
+    setOrders((prev) => prev.filter((o) => o.id !== id));
     try {
       await deleteDoc(doc(db, 'orders', id));
-      setOrders((prev) => prev.filter((o) => o.id !== id));
     } catch (error) {
-      console.error("Error deleting order:", error);
+      console.error("Error deleting order from Firebase:", error);
     }
   };
 
