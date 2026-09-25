@@ -14,7 +14,6 @@ import {
 export const StoreContext = createContext();
 
 export const StoreProvider = ({ children }) => {
-  // Empty default products so dummy items don't block deletion
   const defaultProducts = [];
 
   const defaultFooterLinks = [
@@ -38,11 +37,30 @@ export const StoreProvider = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSubCategory, setSelectedSubCategory] = useState('All');
-  const [cart, setCart] = useState([]);
+
+  // LocalStorage থেকে ইনিশিয়াল কার্ট লোড করা, যাতে লগইন/রিফ্রেশ করলে মুছে না যায়
+  const [cart, setCart] = useState(() => {
+    try {
+      const savedCart = localStorage.getItem('dailyShopCart');
+      return savedCart ? JSON.parse(savedCart) : [];
+    } catch (error) {
+      return [];
+    }
+  });
+
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [activeTab, setActiveTab] = useState('Home');
   const [checkoutItems, setCheckoutItems] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // কার্ট পরিবর্তন হলেই LocalStorage-এ সেভ করে রাখা
+  useEffect(() => {
+    try {
+      localStorage.setItem('dailyShopCart', JSON.stringify(cart));
+    } catch (error) {
+      console.error("Error saving cart to localStorage:", error);
+    }
+  }, [cart]);
 
   // Fetch data from Firebase Firestore
   useEffect(() => {
@@ -62,7 +80,6 @@ export const StoreProvider = ({ children }) => {
           setOrders(orderList);
         }
 
-        // Direct fetch for 'categories' document under 'settings' collection
         const catDocRef = doc(db, 'settings', 'categories');
         const catSnap = await getDoc(catDocRef);
         if (catSnap.exists() && catSnap.data()?.list) {
@@ -78,7 +95,6 @@ export const StoreProvider = ({ children }) => {
     fetchData();
   }, []);
 
-  // Helper function to sync categories with Firebase reliably
   const saveCategoriesToFirebase = async (updatedCategories) => {
     try {
       const catRef = doc(db, 'settings', 'categories');
@@ -90,7 +106,6 @@ export const StoreProvider = ({ children }) => {
 
   const categories = categoryData.map(c => c.name);
 
-  // Cart Selection Logic
   const addToCart = (product) => {
     setCart((prev) => [...prev, { ...product, selected: true }]);
   };
@@ -114,7 +129,6 @@ export const StoreProvider = ({ children }) => {
 
   const clearCart = () => setCart([]);
 
-  // Firebase Database Operation for Add Product
   const addProduct = async (newProd) => {
     try {
       const docRef = await addDoc(collection(db, 'products'), {
@@ -127,10 +141,8 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
-  // Fixed Delete Function
   const deleteProduct = async (id) => {
     setProducts((prev) => prev.filter((p) => p.id !== id));
-
     try {
       await deleteDoc(doc(db, 'products', id));
     } catch (error) {
@@ -138,7 +150,6 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
-  // Automated Stock Scraper Call
   const checkAndUpdateStock = async (productId, supplierUrl) => {
     if (!supplierUrl) return;
     try {
@@ -147,7 +158,6 @@ export const StoreProvider = ({ children }) => {
       if (data && typeof data.inStock === 'boolean') {
         const prodRef = doc(db, 'products', productId);
         await updateDoc(prodRef, { inStock: data.inStock });
-
         setProducts(prev => prev.map(p => p.id === productId ? { ...p, inStock: data.inStock } : p));
       }
     } catch (err) {
@@ -182,7 +192,6 @@ export const StoreProvider = ({ children }) => {
     setFooterLinks((prev) => prev.filter((f) => f.id !== id));
   };
 
-  // Persistent Category Management Functions
   const addCategory = async (categoryName) => {
     if (!categoryName) return;
     if (!categoryData.some(c => c.name.toLowerCase() === categoryName.toLowerCase())) {
@@ -228,7 +237,6 @@ export const StoreProvider = ({ children }) => {
   };
 
   const startCheckout = (items) => {
-    // Filter only selected items for checkout
     const itemsToBuy = (items || cart).filter(item => item.selected !== false);
     if (itemsToBuy.length === 0) {
       alert("দয়া করে কমপক্ষে একটি প্রোডাক্ট সিলেক্ট করুন!");
