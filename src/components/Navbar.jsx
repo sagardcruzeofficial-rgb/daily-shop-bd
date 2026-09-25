@@ -3,8 +3,15 @@ import { StoreContext } from '../context/StoreContext';
 import CartModal from './CartModal';
 
 export default function Navbar() {
-  const { cart, activeTab, setActiveTab } = useContext(StoreContext);
+  const { cart, activeTab, setActiveTab, searchQuery, setSearchQuery } = useContext(StoreContext);
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    if (activeTab !== 'Home') {
+      setActiveTab('Home');
+    }
+  };
 
   return (
     <>
@@ -23,8 +30,11 @@ export default function Navbar() {
           
           {/* Top Left: Logo & Name (DailyShopBD) */}
           <div 
-            onClick={() => setActiveTab('Home')} 
-            className="cursor-pointer flex items-center gap-2.5"
+            onClick={() => {
+              setActiveTab('Home');
+              setSearchQuery('');
+            }} 
+            className="cursor-pointer flex items-center gap-2.5 select-none"
           >
             <div className="w-10 h-10 bg-[#f57224] rounded-xl flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-orange-500/30">
               D
@@ -34,14 +44,19 @@ export default function Navbar() {
             </span>
           </div>
 
-          {/* Center: Search Bar */}
-          <div className="flex-1 max-w-xl hidden md:flex items-center rounded-lg overflow-hidden border-2 border-[#f57224] bg-gray-50">
+          {/* Center: Real-time Search Bar */}
+          <div className="flex-1 max-w-xl hidden md:flex items-center rounded-lg overflow-hidden border-2 border-[#f57224] bg-gray-50 focus-within:bg-white">
             <input 
               type="text" 
               placeholder="Search products in DailyShopBD..." 
+              value={searchQuery || ''}
+              onChange={handleSearchChange}
               className="w-full px-4 py-2 text-gray-800 text-xs outline-none bg-transparent"
             />
-            <button className="bg-[#f57224] hover:bg-orange-600 px-5 py-2 text-white font-bold transition">
+            <button 
+              onClick={() => setActiveTab('Home')}
+              className="bg-[#f57224] hover:bg-orange-600 px-5 py-2 text-white font-bold transition"
+            >
               🔍
             </button>
           </div>
@@ -65,6 +80,25 @@ export default function Navbar() {
                 {cart.length}
               </span>
             </div>
+          </div>
+        </div>
+
+        {/* Mobile Search Bar (Only Visible on Small Screens) */}
+        <div className="md:hidden px-4 pb-3">
+          <div className="flex items-center rounded-lg overflow-hidden border-2 border-[#f57224] bg-gray-50">
+            <input 
+              type="text" 
+              placeholder="Search products in DailyShopBD..." 
+              value={searchQuery || ''}
+              onChange={handleSearchChange}
+              className="w-full px-3 py-1.5 text-gray-800 text-xs outline-none bg-transparent"
+            />
+            <button 
+              onClick={() => setActiveTab('Home')}
+              className="bg-[#f57224] px-4 py-1.5 text-white font-bold text-xs"
+            >
+              🔍
+            </button>
           </div>
         </div>
       </header>
