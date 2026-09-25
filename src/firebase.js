@@ -1,21 +1,23 @@
 import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAv3WvZKGMJu9s6LT5XuBBwIGn7Lkuoo3U",
-  authDomain: "daily-shop-bd.firebaseapp.com",
-  projectId: "daily-shop-bd",
-  storageBucket: "daily-shop-bd.firebasestorage.app",
-  messagingSenderId: "740613379552",
-  appId: "1:740613379552:web:bdc429642a33b791968785",
-  measurementId: "G-V26H7BFQX7"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
 // Export Services
+export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+
 export default app;
