@@ -3,27 +3,29 @@ import { StoreContext } from '../context/StoreContext';
 import ProductCard from './ProductCard';
 
 export default function Home() {
-  const store = useContext(StoreContext) || {};
+  // ১. কনটেক্সট থেকে সব পসিবল ভ্যারিয়েবল ব্যাকআপসহ নেওয়া
+  const context = useContext(StoreContext) || {};
+  
+  const categoryData = context.categoryData || [];
+  const selectedCategory = context.selectedCategory || 'All';
+  const setSelectedCategory = context.setSelectedCategory || (() => {});
+  const selectedSubCategory = context.selectedSubCategory || 'All';
+  const setSelectedSubCategory = context.setSelectedSubCategory || (() => {});
+  const setSelectedProduct = context.setSelectedProduct || (() => {});
 
-  // Safety fallbacks if context key names differ
-  const filteredProducts = store.filteredProducts || store.products || [];
-  const products = store.products || store.filteredProducts || [];
-  const categoryData = store.categoryData || [];
-  const selectedCategory = store.selectedCategory || 'All';
-  const setSelectedCategory = store.setSelectedCategory || (() => {});
-  const selectedSubCategory = store.selectedSubCategory || 'All';
-  const setSelectedSubCategory = store.setSelectedSubCategory || (() => {});
-  const setSelectedProduct = store.setSelectedProduct || (() => {});
+  // প্রোডাক্ট লিস্ট ফালব্যাক লজিক
+  const filteredProducts = context.filteredProducts || context.products || context.allProducts || [];
+  const allProductsList = context.products || context.filteredProducts || context.allProducts || [];
 
-  // Recent 5 products for auto slider
-  const recentProducts = [...products].reverse().slice(0, 5);
+  // অটো স্লাইডারের জন্য ৫টি প্রোডাক্ট
+  const recentProducts = [...allProductsList].reverse().slice(0, 5);
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Sub-categories list
+  // কারেন্ট সাব-ক্যাটাগরি
   const currentCatObj = categoryData.find((c) => c.name === selectedCategory);
   const currentSubCategories = currentCatObj ? currentCatObj.subCategories || [] : [];
 
-  // Auto Slider Interval
+  // স্লাইডার টাইমার
   useEffect(() => {
     if (recentProducts.length <= 1) return;
     const interval = setInterval(() => {
@@ -33,19 +35,20 @@ export default function Home() {
   }, [recentProducts.length]);
 
   return (
-    <div className="max-w-[1300px] mx-auto px-4 py-6 font-sans">
-      {/* Main Container: Mobile column, Desktop flex row */}
-      <div className="flex flex-col md:flex-row gap-6 items-start">
+    <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '16px' }} className="font-sans">
+      
+      {/* মেইন লেআউট Container (Standard CSS + Tailwind Mix) */}
+      <div style={{ display: 'flex', flexDirection: 'row', gap: '24px', alignItems: 'flex-start' }} className="flex-col md:flex-row">
         
-        {/* ----------------- ১. বাম পাশে সাইডবার ক্যাটাগরি ----------------- */}
-        <div className="w-full md:w-64 shrink-0">
+        {/* ==================== ১. বাম পাশের ক্যাটাগরি সাইডবার ==================== */}
+        <div style={{ width: '250px', flexShrink: 0 }} className="w-full md:w-64">
           <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm sticky top-4">
             <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
               Categories
             </h2>
 
             <div className="flex flex-col gap-1">
-              {/* All Categories Button */}
+              {/* All Categories */}
               <button
                 type="button"
                 onClick={() => {
@@ -117,13 +120,13 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ----------------- ২. ডান পাশে ব্যানার ও প্রোডাক্ট স্লাইডার ----------------- */}
-        <div className="flex-1 w-full space-y-6">
+        {/* ==================== ২. ডান পাশের ব্যানার ও প্রোডাক্ট গ্রিড ==================== */}
+        <div style={{ flex: 1, width: '100%' }} className="space-y-6">
           
-          {/* Top Banner & Slider Area */}
+          {/* ব্যানার ও স্লাইডার ফ্রেম */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             
-            {/* Main SuperShop Banner */}
+            {/* মেইন সুপারশপ ব্যানার */}
             <div className="lg:col-span-2 relative rounded-2xl overflow-hidden shadow-sm border border-gray-200 h-52 bg-gray-900 group">
               <img
                 src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=800&q=80"
@@ -139,10 +142,10 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right Side Small Slider & Promo Frame */}
+            {/* ডান পাশের ছোট স্লাইডার ও প্রোমো */}
             <div className="lg:col-span-1 grid grid-cols-2 lg:grid-cols-1 gap-3">
               
-              {/* Auto Slider Box */}
+              {/* স্লাইডার ফ্রেম */}
               <div
                 onClick={() => setSelectedProduct && recentProducts[currentSlide] && setSelectedProduct(recentProducts[currentSlide])}
                 className="relative bg-black rounded-xl overflow-hidden shadow-sm h-24 border border-gray-200 cursor-pointer group"
@@ -169,7 +172,7 @@ export default function Home() {
                 )}
               </div>
 
-              {/* Promo Banner Frame */}
+              {/* প্রোমো ব্যানার */}
               <div className="relative rounded-xl overflow-hidden shadow-sm h-24 border border-gray-200 group bg-gray-100">
                 <img
                   src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=400&q=80"
@@ -186,7 +189,7 @@ export default function Home() {
 
           </div>
 
-          {/* Product Grid Section */}
+          {/* প্রোডাক্ট গ্রিড */}
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">
@@ -203,8 +206,8 @@ export default function Home() {
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {filteredProducts.map((prod) => (
-                  <ProductCard key={prod.id || prod._id || Math.random()} product={prod} />
+                {filteredProducts.map((prod, idx) => (
+                  <ProductCard key={prod.id || prod._id || idx} product={prod} />
                 ))}
               </div>
             )}
