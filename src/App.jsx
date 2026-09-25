@@ -21,11 +21,8 @@ export default function App() {
 
   const { products = [], categories = [], activeTab = 'Home' } = store;
 
-  // Domain detection or URL Parameter check
   const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
-  
-  // Only load Admin Panel if hostname contains 'admin' OR '?admin=true' is in the URL
   const isAdminDomain = currentHost.includes('admin') || urlParams.get('admin') === 'true';
 
   if (isAdminDomain) {
@@ -74,7 +71,6 @@ export default function App() {
             </div>
           </div>
         ) : activeTab === 'About Us' ? (
-          /* About Us Page Layout */
           <div className="max-w-[1000px] mx-auto px-4 py-10">
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 space-y-6">
               <h1 className="text-2xl font-black text-gray-900 border-b pb-3">About DailyShopBD</h1>
@@ -98,7 +94,6 @@ export default function App() {
             </div>
           </div>
         ) : (
-          /* Other Tabs (Privacy Policy / Contact Us) */
           <div className="max-w-[1000px] mx-auto px-4 py-10">
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 min-h-[300px]">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">{activeTab}</h2>
