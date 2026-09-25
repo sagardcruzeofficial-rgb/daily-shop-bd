@@ -7,7 +7,8 @@ import {
   deleteDoc, 
   doc, 
   updateDoc,
-  setDoc
+  setDoc,
+  getDoc
 } from 'firebase/firestore';
 
 export const StoreContext = createContext();
@@ -61,11 +62,11 @@ export const StoreProvider = ({ children }) => {
           setOrders(orderList);
         }
 
-        // Fetch saved category list from Firebase
-        const catSnap = await getDocs(collection(db, 'settings'));
-        const catDoc = catSnap.docs.find(d => d.id === 'categories');
-        if (catDoc && catDoc.data()?.list) {
-          setCategoryData(catDoc.data().list);
+        // Direct fetch for 'categories' document under 'settings' collection
+        const catDocRef = doc(db, 'settings', 'categories');
+        const catSnap = await getDoc(catDocRef);
+        if (catSnap.exists() && catSnap.data()?.list) {
+          setCategoryData(catSnap.data().list);
         }
       } catch (error) {
         console.error("Firebase fetch error:", error);
@@ -77,10 +78,11 @@ export const StoreProvider = ({ children }) => {
     fetchData();
   }, []);
 
-  // Helper function to sync categories with Firebase
+  // Helper function to sync categories with Firebase reliably
   const saveCategoriesToFirebase = async (updatedCategories) => {
     try {
-      await setDoc(doc(db, 'settings', 'categories'), { list: updatedCategories });
+      const catRef = doc(db, 'settings', 'categories');
+      await setDoc(catRef, { list: updatedCategories }, { merge: true });
     } catch (error) {
       console.error("Error saving categories to Firebase:", error);
     }
