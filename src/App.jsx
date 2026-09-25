@@ -5,6 +5,8 @@ import ProductCard from './components/ProductCard';
 import ProductDetailModal from './components/ProductDetailModal';
 import AdminView from './components/AdminView';
 import CheckoutPage from './components/CheckoutPage';
+import Login from './components/Login';
+import Register from './components/Register';
 import Footer from './components/Footer';
 import { StoreContext } from './context/StoreContext';
 
@@ -57,6 +59,10 @@ export default function App() {
       <main className="flex-1">
         {activeTab === 'Checkout' ? (
           <CheckoutPage />
+        ) : activeTab === 'Login' ? (
+          <div className="py-10"><Login /></div>
+        ) : activeTab === 'Register' ? (
+          <div className="py-10"><Register /></div>
         ) : activeTab === 'Home' ? (
           <div className="max-w-[1300px] mx-auto px-4 py-6">
             <div className="flex flex-col lg:flex-row gap-6">
