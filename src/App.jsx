@@ -11,7 +11,6 @@ import { StoreContext } from './context/StoreContext';
 export default function App() {
   const store = useContext(StoreContext);
 
-  // StoreContext ready/loaded naki check
   if (!store) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100 font-sans">
@@ -71,9 +70,34 @@ export default function App() {
               </div>
             </div>
           </div>
+        ) : activeTab === 'About Us' ? (
+          /* About Us Page Layout */
+          <div className="max-w-[1000px] mx-auto px-4 py-10">
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 space-y-6">
+              <h1 className="text-2xl font-black text-gray-900 border-b pb-3">About DailyShopBD</h1>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Welcome to <strong>DailyShopBD</strong> — your one-stop destination for quality lifestyle products, electronics, gadgets, and trendy apparel in Bangladesh.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+                <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
+                  <h3 className="font-bold text-gray-800 text-sm mb-1">🚀 Fast Delivery</h3>
+                  <p className="text-xs text-gray-500">Quick order processing and reliable delivery across Bangladesh.</p>
+                </div>
+                <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
+                  <h3 className="font-bold text-gray-800 text-sm mb-1">💯 Quality Assurance</h3>
+                  <p className="text-xs text-gray-500">We carefully curate and inspect every item before shipping.</p>
+                </div>
+                <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
+                  <h3 className="font-bold text-gray-800 text-sm mb-1">📞 24/7 Support</h3>
+                  <p className="text-xs text-gray-500">Dedicated support via WhatsApp and hotline for all queries.</p>
+                </div>
+              </div>
+            </div>
+          </div>
         ) : (
-          <div className="max-w-[1300px] mx-auto px-4 py-6">
-            <div className="bg-white p-8 rounded-xl shadow border min-h-[350px]">
+          /* Other Tabs (Privacy Policy / Contact Us) */
+          <div className="max-w-[1000px] mx-auto px-4 py-10">
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 min-h-[300px]">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">{activeTab}</h2>
               <p className="text-gray-600 text-sm">Welcome to the {activeTab} page of DailyShopBD.</p>
             </div>
