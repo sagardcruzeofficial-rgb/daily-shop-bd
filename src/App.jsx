@@ -10,11 +10,14 @@ import { StoreContext } from './context/StoreContext';
 export default function App() {
   const { products, categories, activeTab } = useContext(StoreContext);
 
-  // Check if secret admin route is requested via URL "?admin=true"
+  // Detect domain name or URL query parameter
+  const currentHost = window.location.hostname;
   const urlParams = new URLSearchParams(window.location.search);
-  const isAdminPath = urlParams.get('admin') === 'true';
+  
+  // Show Admin if hostname contains 'admin' OR '?admin=true' in URL
+  const isAdminDomain = currentHost.includes('admin') || urlParams.get('admin') === 'true';
 
-  if (isAdminPath) {
+  if (isAdminDomain) {
     return (
       <div className="bg-[#f8fafc] min-h-screen">
         <AdminView />
@@ -34,7 +37,7 @@ export default function App() {
               {/* Left Category Menu */}
               <CategorySidebar />
 
-              {/* Right Blogger Style Category Blocks */}
+              {/* Right Category Blocks */}
               <div className="flex-1 space-y-10">
                 {categories.map((cat) => {
                   const categoryProducts = products.filter(p => p.category === cat);
