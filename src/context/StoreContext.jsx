@@ -6,7 +6,8 @@ import {
   addDoc, 
   deleteDoc, 
   doc, 
-  updateDoc 
+  updateDoc,
+  setDoc
 } from 'firebase/firestore';
 
 export const StoreContext = createContext();
@@ -59,6 +60,13 @@ export const StoreProvider = ({ children }) => {
           const orderList = orderSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           setOrders(orderList);
         }
+
+        // Fetch saved category list from Firebase
+        const catSnap = await getDocs(collection(db, 'settings'));
+        const catDoc = catSnap.docs.find(d => d.id === 'categories');
+        if (catDoc && catDoc.data()?.list) {
+          setCategoryData(catDoc.data().list);
+        }
       } catch (error) {
         console.error("Firebase fetch error:", error);
       } finally {
@@ -68,6 +76,15 @@ export const StoreProvider = ({ children }) => {
 
     fetchData();
   }, []);
+
+  // Helper function to sync categories with Firebase
+  const saveCategoriesToFirebase = async (updatedCategories) => {
+    try {
+      await setDoc(doc(db, 'settings', 'categories'), { list: updatedCategories });
+    } catch (error) {
+      console.error("Error saving categories to Firebase:", error);
+    }
+  };
 
   const categories = categoryData.map(c => c.name);
 
@@ -163,44 +180,49 @@ export const StoreProvider = ({ children }) => {
     setFooterLinks((prev) => prev.filter((f) => f.id !== id));
   };
 
-  const addCategory = (categoryName) => {
+  // Persistent Category Management Functions
+  const addCategory = async (categoryName) => {
     if (!categoryName) return;
     if (!categoryData.some(c => c.name.toLowerCase() === categoryName.toLowerCase())) {
-      setCategoryData((prev) => [...prev, { name: categoryName, subCategories: [] }]);
+      const updated = [...categoryData, { name: categoryName, subCategories: [] }];
+      setCategoryData(updated);
+      await saveCategoriesToFirebase(updated);
     }
   };
 
-  const deleteCategory = (categoryName) => {
-    setCategoryData((prev) => prev.filter((c) => c.name !== categoryName));
+  const deleteCategory = async (categoryName) => {
+    const updated = categoryData.filter((c) => c.name !== categoryName);
+    setCategoryData(updated);
+    await saveCategoriesToFirebase(updated);
   };
 
-  const addSubCategory = (categoryName, subCategoryName) => {
+  const addSubCategory = async (categoryName, subCategoryName) => {
     if (!categoryName || !subCategoryName) return;
-    setCategoryData((prev) =>
-      prev.map((c) => {
-        if (c.name === categoryName) {
-          const subList = c.subCategories || [];
-          if (!subList.includes(subCategoryName)) {
-            return { ...c, subCategories: [...subList, subCategoryName] };
-          }
+    const updated = categoryData.map((c) => {
+      if (c.name === categoryName) {
+        const subList = c.subCategories || [];
+        if (!subList.includes(subCategoryName)) {
+          return { ...c, subCategories: [...subList, subCategoryName] };
         }
-        return c;
-      })
-    );
+      }
+      return c;
+    });
+    setCategoryData(updated);
+    await saveCategoriesToFirebase(updated);
   };
 
-  const deleteSubCategory = (categoryName, subCategoryName) => {
-    setCategoryData((prev) =>
-      prev.map((c) => {
-        if (c.name === categoryName) {
-          return {
-            ...c,
-            subCategories: (c.subCategories || []).filter((s) => s !== subCategoryName)
-          };
-        }
-        return c;
-      })
-    );
+  const deleteSubCategory = async (categoryName, subCategoryName) => {
+    const updated = categoryData.map((c) => {
+      if (c.name === categoryName) {
+        return {
+          ...c,
+          subCategories: (c.subCategories || []).filter((s) => s !== subCategoryName)
+        };
+      }
+      return c;
+    });
+    setCategoryData(updated);
+    await saveCategoriesToFirebase(updated);
   };
 
   const startCheckout = (items) => {
