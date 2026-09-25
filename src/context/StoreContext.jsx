@@ -12,7 +12,8 @@ export const StoreProvider = ({ children }) => {
       category: 'Fashion',
       subCategory: 'T-Shirts',
       sizes: ['M', 'L', 'XL', 'XXL'],
-      description: '100% Premium Cotton stylish t-shirt for daily use.'
+      description: '100% Premium Cotton stylish t-shirt for daily use.',
+      supplierUrl: 'https://supplier-website.com/item/tshirt-101' // 👈 Hidden from visitors
     },
     {
       id: 2,
@@ -22,7 +23,8 @@ export const StoreProvider = ({ children }) => {
       category: 'Electronics',
       subCategory: 'Audio',
       sizes: ['Standard'],
-      description: 'High bass bluetooth headphone with long battery life.'
+      description: 'High bass bluetooth headphone with long battery life.',
+      supplierUrl: 'https://supplier-website.com/item/headphone-202' // 👈 Hidden from visitors
     },
     {
       id: 3,
@@ -32,7 +34,8 @@ export const StoreProvider = ({ children }) => {
       category: 'Gadgets',
       subCategory: 'Smart Wearables',
       sizes: ['Standard'],
-      description: 'Waterproof smartwatch with health sensors.'
+      description: 'Waterproof smartwatch with health sensors.',
+      supplierUrl: 'https://supplier-website.com/item/watch-303' // 👈 Hidden from visitors
     },
     {
       id: 4,
@@ -42,7 +45,8 @@ export const StoreProvider = ({ children }) => {
       category: 'Fashion',
       subCategory: 'Shoes',
       sizes: ['40', '41', '42', '43'],
-      description: 'Lightweight breathable mesh running shoes.'
+      description: 'Lightweight breathable mesh running shoes.',
+      supplierUrl: 'https://supplier-website.com/item/shoes-404' // 👈 Hidden from visitors
     }
   ];
 
