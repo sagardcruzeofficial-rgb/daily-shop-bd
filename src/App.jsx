@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext } from 'react';
 import Navbar from './components/Navbar';
 import CategorySidebar from './components/CategorySidebar';
 import ProductCard from './components/ProductCard';
@@ -10,17 +10,6 @@ import { StoreContext } from './context/StoreContext';
 
 export default function App() {
   const store = useContext(StoreContext);
-  const [isAdminView, setIsAdminView] = useState(false);
-
-  useEffect(() => {
-    // Check URL parameters or domain on initial load
-    const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
-    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
-    
-    if (currentHost.includes('admin') || urlParams.get('admin') === 'true') {
-      setIsAdminView(true);
-    }
-  }, []);
 
   if (!store) {
     return (
@@ -32,24 +21,16 @@ export default function App() {
 
   const { products = [], categories = [], activeTab = 'Home' } = store;
 
-  // Render Admin View if true
-  if (isAdminView) {
+  // Domain detection or URL Parameter check
+  const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+  
+  // Only load Admin Panel if hostname contains 'admin' OR '?admin=true' is in the URL
+  const isAdminDomain = currentHost.includes('admin') || urlParams.get('admin') === 'true';
+
+  if (isAdminDomain) {
     return (
       <div className="bg-[#f8fafc] min-h-screen">
-        <div className="bg-black text-white px-6 py-2 flex justify-between items-center text-xs">
-          <span>🛠️ Admin Control Panel - DailyShopBD</span>
-          <button 
-            onClick={() => {
-              setIsAdminView(false);
-              if (typeof window !== 'undefined' && window.location.search.includes('admin=true')) {
-                window.history.pushState({}, '', window.location.pathname);
-              }
-            }} 
-            className="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1 rounded transition"
-          >
-            Exit Admin Panel ✕
-          </button>
-        </div>
         <AdminView />
       </div>
     );
@@ -126,16 +107,6 @@ export default function App() {
           </div>
         )}
       </main>
-
-      {/* Admin Quick Switch Button at bottom right */}
-      <div className="fixed bottom-3 right-3 z-50">
-        <button 
-          onClick={() => setIsAdminView(true)}
-          className="bg-gray-900/90 hover:bg-black text-gray-300 hover:text-white text-[11px] font-semibold px-3 py-1.5 rounded-full border border-gray-700 shadow-lg transition"
-        >
-          ⚙️ Admin Panel
-        </button>
-      </div>
 
       <ProductDetailModal />
       <Footer />
