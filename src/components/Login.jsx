@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { StoreContext } from '../context/StoreContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -8,7 +8,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
-  const navigate = useNavigate();
+  const { setActiveTab } = useContext(StoreContext);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -16,7 +16,7 @@ export default function Login() {
       setError('');
       setLoading(true);
       await login(email, password);
-      navigate('/');
+      setActiveTab('Home');
     } catch (err) {
       setError('Failed to log in: ' + err.message);
     }
@@ -24,40 +24,48 @@ export default function Login() {
   }
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-      {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-2">Email</label>
+    <div className="max-w-md mx-auto my-10 p-8 bg-white rounded-2xl shadow-sm border border-gray-200 font-sans">
+      <h2 className="text-2xl font-black mb-6 text-center text-gray-900 border-l-4 border-[#f57224] pl-3">Login to Account</h2>
+      {error && <div className="mb-4 p-3 bg-red-50 text-red-700 text-xs font-semibold rounded-lg border border-red-200">{error}</div>}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-gray-700 text-xs font-bold mb-1.5">Email</label>
           <input 
             type="email" 
             required 
             value={email} 
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring"
+            className="w-full px-3 py-2 text-xs border rounded-lg focus:outline-none focus:border-[#f57224] bg-gray-50"
+            placeholder="your_email@example.com"
           />
         </div>
-        <div className="mb-6">
-          <label className="block text-gray-700 mb-2">Password</label>
+        <div>
+          <label className="block text-gray-700 text-xs font-bold mb-1.5">Password</label>
           <input 
             type="password" 
             required 
             value={password} 
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring"
+            className="w-full px-3 py-2 text-xs border rounded-lg focus:outline-none focus:border-[#f57224] bg-gray-50"
+            placeholder="••••••••"
           />
         </div>
         <button 
           disabled={loading} 
           type="submit" 
-          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+          className="w-full bg-[#f57224] text-white py-2.5 rounded-lg text-xs font-bold hover:bg-orange-600 transition shadow-sm"
         >
-          Login
+          {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
-      <p className="mt-4 text-center text-gray-600">
-        Need an account? <Link to="/register" className="text-blue-600 hover:underline">Register</Link>
+      <p className="mt-6 text-center text-xs text-gray-600 font-medium">
+        Need an account?{' '}
+        <button 
+          onClick={() => setActiveTab('Register')} 
+          className="text-[#f57224] font-bold hover:underline"
+        >
+          Register
+        </button>
       </p>
     </div>
   );
