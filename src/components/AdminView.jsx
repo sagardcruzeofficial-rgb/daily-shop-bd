@@ -28,14 +28,27 @@ export default function AdminView() {
 
   return (
     <div className="max-w-[1300px] mx-auto px-4 py-8 font-sans">
-      <div className="bg-gray-900 text-white p-6 rounded-2xl mb-8 flex justify-between items-center shadow-lg">
+      {/* Header Bar */}
+      <div className="bg-gray-900 text-white p-6 rounded-2xl mb-8 flex flex-col md:flex-row justify-between items-center shadow-lg gap-4">
         <div>
           <h2 className="text-2xl font-black text-orange-500">DailyShop BD - Master Admin Panel</h2>
           <p className="text-xs text-gray-400">Control products, view customer orders & edit website footer sections.</p>
         </div>
-        <a href="/" className="bg-orange-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-orange-600">
-          Exit Admin Mode
-        </a>
+        
+        {/* Live Site Link & Exit Options */}
+        <div className="flex items-center gap-3">
+          <a 
+            href={typeof window !== 'undefined' ? window.location.origin.replace('admin.', '') : '/'} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow"
+          >
+            👁️ Visit Live Store
+          </a>
+          <a href="/" className="bg-orange-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-orange-600 transition shadow">
+            Exit Admin Mode
+          </a>
+        </div>
       </div>
 
       {/* 1. Customer Orders Section */}
@@ -70,7 +83,7 @@ export default function AdminView() {
                     <td className="p-2 border text-blue-600">{ord.phone}</td>
                     <td className="p-2 border max-w-xs">{ord.address}</td>
                     <td className="p-2 border">
-                      <button onClick={() => deleteOrder(ord.id)} className="bg-red-500 text-white px-2 py-1 rounded text-[10px]">Clear</button>
+                      <button onClick={() => deleteOrder(ord.id)} className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-[10px] transition">Clear</button>
                     </td>
                   </tr>
                 ))}
@@ -96,7 +109,7 @@ export default function AdminView() {
               <option>Gadgets</option>
             </select>
             <textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} required className="w-full border p-2 text-xs rounded" rows={3}></textarea>
-            <button className="w-full bg-[#f57224] text-white font-bold py-2 rounded text-xs hover:bg-orange-600">Publish Product</button>
+            <button className="w-full bg-[#f57224] text-white font-bold py-2 rounded text-xs hover:bg-orange-600 transition">Publish Product</button>
           </form>
         </div>
 
@@ -106,7 +119,7 @@ export default function AdminView() {
           <form onSubmit={handleFooterSubmit} className="space-y-3 mb-4">
             <input type="text" placeholder="Footer Link Name" value={footerTitle} onChange={(e) => setFooterTitle(e.target.value)} required className="w-full border p-2 text-xs rounded" />
             <input type="text" placeholder="URL Target" value={footerUrl} onChange={(e) => setFooterUrl(e.target.value)} required className="w-full border p-2 text-xs rounded" />
-            <button className="w-full bg-gray-800 text-white font-bold py-2 rounded text-xs hover:bg-black">Add Footer Link</button>
+            <button className="w-full bg-gray-800 text-white font-bold py-2 rounded text-xs hover:bg-black transition">Add Footer Link</button>
           </form>
 
           <div className="space-y-2">
@@ -114,7 +127,7 @@ export default function AdminView() {
             {footerLinks.map((fl) => (
               <div key={fl.id} className="flex justify-between items-center bg-gray-50 p-2 rounded border text-xs">
                 <span>{fl.title}</span>
-                <button onClick={() => deleteFooterLink(fl.id)} className="text-red-500 font-bold">✕</button>
+                <button onClick={() => deleteFooterLink(fl.id)} className="text-red-500 font-bold hover:text-red-700">✕</button>
               </div>
             ))}
           </div>
@@ -127,7 +140,7 @@ export default function AdminView() {
             {products.map((p) => (
               <div key={p.id} className="flex items-center justify-between bg-gray-50 p-2 rounded border">
                 <span className="text-xs font-bold truncate max-w-[180px]">{p.title}</span>
-                <button onClick={() => deleteProduct(p.id)} className="bg-red-500 text-white px-2 py-1 text-[10px] rounded">Delete</button>
+                <button onClick={() => deleteProduct(p.id)} className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 text-[10px] rounded transition">Delete</button>
               </div>
             ))}
           </div>
