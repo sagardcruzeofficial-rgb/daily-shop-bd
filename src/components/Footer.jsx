@@ -65,7 +65,7 @@ export default function Footer() {
         {/* Payment Methods */}
         <div>
           <h4 className="font-bold text-white text-sm mb-3 border-b border-gray-800 pb-2">Accepted Payment</h4>
-          <p className="text-gray-400">bKash, Rocket, Nagad, Cash on Delivery</p>
+          <p className="text-gray-400">Bkash, Rocket, Nagad, Cash on Delivery</p>
         </div>
 
       </div>
