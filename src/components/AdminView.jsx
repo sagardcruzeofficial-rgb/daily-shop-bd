@@ -15,6 +15,8 @@ export default function AdminView() {
   const [selectedCat, setSelectedCat] = useState('');
   const [selectedSubCat, setSelectedSubCat] = useState('');
   const [description, setDescription] = useState('');
+  const [supplierUrl, setSupplierUrl] = useState('');
+  const [sizesInput, setSizesInput] = useState('M, L, XL, XXL');
 
   // Category & Subcategory Inputs
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -34,6 +36,12 @@ export default function AdminView() {
 
   const handleProductSubmit = (e) => {
     e.preventDefault();
+
+    // Process comma-separated sizes into an array
+    const parsedSizes = sizesInput
+      ? sizesInput.split(',').map(s => s.trim()).filter(Boolean)
+      : ['Standard'];
+
     addProduct({ 
       title, 
       price: Number(price), 
@@ -41,9 +49,11 @@ export default function AdminView() {
       category: selectedCat || (categoryData[0] && categoryData[0].name) || 'Fashion', 
       subCategory: selectedSubCat,
       description, 
-      sizes: ['M', 'L', 'XL'] 
+      sizes: parsedSizes,
+      supplierUrl: supplierUrl.trim() // Secret supplier link (Hidden from visitors)
     });
-    setTitle(''); setPrice(''); setImage(''); setDescription('');
+
+    setTitle(''); setPrice(''); setImage(''); setDescription(''); setSupplierUrl(''); setSizesInput('M, L, XL, XXL');
     alert('Product Published Successfully!');
   };
 
@@ -82,7 +92,7 @@ export default function AdminView() {
       <div className="bg-gray-900 text-white p-6 rounded-2xl mb-8 flex flex-col md:flex-row justify-between items-center shadow-lg gap-4">
         <div>
           <h2 className="text-2xl font-black text-orange-500">DailyShop BD - Master Admin Panel</h2>
-          <p className="text-xs text-gray-400">Manage products, sub-categories, search tags, orders & footer links.</p>
+          <p className="text-xs text-gray-400">Manage products, sub-categories, supplier links, orders & footer links.</p>
         </div>
         
         <div className="flex items-center gap-3">
@@ -167,6 +177,29 @@ export default function AdminView() {
               ))}
             </select>
 
+            {/* Sizes Input */}
+            <label className="block text-[11px] font-bold text-gray-600">Available Sizes (Comma Separated):</label>
+            <input 
+              type="text" 
+              placeholder="e.g. M, L, XL, XXL or 40, 41, 42" 
+              value={sizesInput} 
+              onChange={(e) => setSizesInput(e.target.value)} 
+              className="w-full border p-2 text-xs rounded" 
+            />
+
+            {/* Hidden Supplier URL Input */}
+            <div className="bg-orange-50 p-2 rounded-lg border border-orange-200">
+              <label className="block text-[10px] font-bold text-orange-700 uppercase">🔒 Hidden Supplier Link (Dropship URL):</label>
+              <input 
+                type="url" 
+                placeholder="https://supplier-site.com/product-link" 
+                value={supplierUrl} 
+                onChange={(e) => setSupplierUrl(e.target.value)} 
+                className="w-full border p-1.5 text-xs rounded mt-1 bg-white" 
+              />
+              <span className="text-[9px] text-gray-500 italic block mt-0.5">* Visitors will never see this link.</span>
+            </div>
+
             <textarea placeholder="Description (Search tags will automatically read this)" value={description} onChange={(e) => setDescription(e.target.value)} required className="w-full border p-2 text-xs rounded" rows={3}></textarea>
             <button className="w-full bg-[#f57224] text-white font-bold py-2 rounded text-xs hover:bg-orange-600 transition">Publish Product</button>
           </form>
@@ -242,14 +275,26 @@ export default function AdminView() {
           </div>
         </div>
 
-        {/* Delete Products Section */}
+        {/* Manage & Delete Products Section */}
         <div className="bg-white p-5 rounded-2xl shadow border border-gray-200">
-          <h3 className="font-bold text-gray-800 mb-3 border-b pb-2 text-sm">🗑️ Delete Products</h3>
-          <div className="space-y-2 max-h-80 overflow-y-auto">
+          <h3 className="font-bold text-gray-800 mb-3 border-b pb-2 text-sm">🗑️ Manage Products ({products.length})</h3>
+          <div className="space-y-2 max-h-96 overflow-y-auto">
             {products.map((p) => (
-              <div key={p.id} className="flex items-center justify-between bg-gray-50 p-2 rounded border">
-                <span className="text-xs font-bold truncate max-w-[140px] text-gray-700">{p.title}</span>
-                <button onClick={() => deleteProduct(p.id)} className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 text-[10px] rounded transition">Delete</button>
+              <div key={p.id} className="flex flex-col bg-gray-50 p-2 rounded border space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold truncate max-w-[140px] text-gray-700">{p.title}</span>
+                  <button onClick={() => deleteProduct(p.id)} className="bg-red-500 hover:bg-red-600 text-white px-2 py-0.5 text-[10px] rounded transition">Delete</button>
+                </div>
+                <div className="text-[10px] text-gray-500 flex flex-col gap-0.5">
+                  <span><strong>Sizes:</strong> {Array.isArray(p.sizes) ? p.sizes.join(', ') : 'Standard'}</span>
+                  {p.supplierUrl ? (
+                    <a href={p.supplierUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline truncate hover:text-blue-800">
+                      🔗 Supplier Link
+                    </a>
+                  ) : (
+                    <span className="text-gray-400 italic">No supplier link added</span>
+                  )}
+                </div>
               </div>
             ))}
           </div>
