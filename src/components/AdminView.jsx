@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { StoreContext } from '../context/StoreContext';
 
 export default function AdminView() {
@@ -6,19 +6,31 @@ export default function AdminView() {
     products, addProduct, deleteProduct, 
     orders, deleteOrder, 
     footerLinks = [], addFooterLink, deleteFooterLink,
-    categories = [], addCategory, deleteCategory 
+    categoryData = [], addCategory, deleteCategory, addSubCategory, deleteSubCategory 
   } = useContext(StoreContext);
   
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
   const [image, setImage] = useState('');
-  const [category, setCategory] = useState(categories[0] || 'Fashion');
+  const [selectedCat, setSelectedCat] = useState('');
+  const [selectedSubCat, setSelectedSubCat] = useState('');
   const [description, setDescription] = useState('');
 
-  const [newCategory, setNewCategory] = useState('');
+  // Category & Subcategory Inputs
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [targetCategoryForSub, setTargetCategoryForSub] = useState('');
+  const [newSubCategoryName, setNewSubCategoryName] = useState('');
 
   const [footerTitle, setFooterTitle] = useState('');
   const [footerUrl, setFooterUrl] = useState('');
+
+  // Default Select Initialization
+  useEffect(() => {
+    if (categoryData.length > 0) {
+      if (!selectedCat) setSelectedCat(categoryData[0].name);
+      if (!targetCategoryForSub) setTargetCategoryForSub(categoryData[0].name);
+    }
+  }, [categoryData]);
 
   const handleProductSubmit = (e) => {
     e.preventDefault();
@@ -26,31 +38,43 @@ export default function AdminView() {
       title, 
       price: Number(price), 
       image, 
-      category: category || categories[0] || 'General', 
+      category: selectedCat || (categoryData[0] && categoryData[0].name) || 'Fashion', 
+      subCategory: selectedSubCat,
       description, 
       sizes: ['M', 'L', 'XL'] 
     });
     setTitle(''); setPrice(''); setImage(''); setDescription('');
-    alert('Product Published!');
+    alert('Product Published Successfully!');
   };
 
-  const handleCategorySubmit = (e) => {
+  const handleAddCategorySubmit = (e) => {
     e.preventDefault();
-    if (!newCategory.trim()) return;
-    if (addCategory) {
-      addCategory(newCategory.trim());
-      setNewCategory('');
-      alert('Category Added!');
-    } else {
-      alert('addCategory function is missing in StoreContext');
+    if (!newCategoryName.trim()) return;
+    addCategory(newCategoryName.trim());
+    setNewCategoryName('');
+    alert('Main Category Added!');
+  };
+
+  const handleAddSubCategorySubmit = (e) => {
+    e.preventDefault();
+    const currentTargetCat = targetCategoryForSub || (categoryData[0] && categoryData[0].name);
+    if (!newSubCategoryName.trim() || !currentTargetCat) {
+      alert('Please select a main category first!');
+      return;
     }
+    addSubCategory(currentTargetCat, newSubCategoryName.trim());
+    setNewSubCategoryName('');
+    alert(`Sub-Category added under "${currentTargetCat}"!`);
   };
 
   const handleFooterSubmit = (e) => {
     e.preventDefault();
     addFooterLink({ title: footerTitle, url: footerUrl });
     setFooterTitle(''); setFooterUrl('');
+    alert('Footer Link Added!');
   };
+
+  const activeSubCategories = categoryData.find(c => c.name === selectedCat)?.subCategories || [];
 
   return (
     <div className="max-w-[1300px] mx-auto px-4 py-8 font-sans">
@@ -58,10 +82,9 @@ export default function AdminView() {
       <div className="bg-gray-900 text-white p-6 rounded-2xl mb-8 flex flex-col md:flex-row justify-between items-center shadow-lg gap-4">
         <div>
           <h2 className="text-2xl font-black text-orange-500">DailyShop BD - Master Admin Panel</h2>
-          <p className="text-xs text-gray-400">Control products, categories, customer orders & edit website footer sections.</p>
+          <p className="text-xs text-gray-400">Manage products, sub-categories, search tags, orders & footer links.</p>
         </div>
         
-        {/* Live Site Link & Exit Options */}
         <div className="flex items-center gap-3">
           <a 
             href={typeof window !== 'undefined' ? window.location.origin.replace('admin.', '') : '/'} 
@@ -77,12 +100,9 @@ export default function AdminView() {
         </div>
       </div>
 
-      {/* 1. Customer Orders Section */}
+      {/* 1. Customer Orders */}
       <div className="bg-white p-6 rounded-2xl shadow border border-gray-200 mb-8">
-        <h3 className="font-bold text-gray-800 text-base mb-4 border-b pb-2 flex items-center justify-between">
-          <span>📦 Customer Website Orders ({orders ? orders.length : 0})</span>
-        </h3>
-
+        <h3 className="font-bold text-gray-800 text-base mb-4 border-b pb-2">📦 Customer Website Orders ({orders ? orders.length : 0})</h3>
         {!orders || orders.length === 0 ? (
           <p className="text-xs text-gray-400 py-4">No orders received yet.</p>
         ) : (
@@ -122,55 +142,82 @@ export default function AdminView() {
       {/* 2. Management Forms Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         
-        {/* Add Product Form */}
+        {/* Publish Product Form */}
         <div className="bg-white p-5 rounded-2xl shadow border border-gray-200">
           <h3 className="font-bold text-gray-800 mb-3 border-b pb-2 text-sm">➕ Publish New Product</h3>
           <form onSubmit={handleProductSubmit} className="space-y-3">
-            <input type="text" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full border p-2 text-xs rounded" />
+            <input type="text" placeholder="Product Title" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full border p-2 text-xs rounded" />
             <input type="number" placeholder="Price BDT" value={price} onChange={(e) => setPrice(e.target.value)} required className="w-full border p-2 text-xs rounded" />
             <input type="text" placeholder="Image URL" value={image} onChange={(e) => setImage(e.target.value)} required className="w-full border p-2 text-xs rounded" />
             
-            {/* Dynamic Category Selector */}
-            <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full border p-2 text-xs rounded font-medium text-gray-700">
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
+            {/* Category Dropdown */}
+            <label className="block text-[11px] font-bold text-gray-600">Main Category:</label>
+            <select value={selectedCat} onChange={(e) => setSelectedCat(e.target.value)} className="w-full border p-2 text-xs rounded font-medium text-gray-700">
+              {categoryData.map((cat) => (
+                <option key={cat.name} value={cat.name}>{cat.name}</option>
               ))}
             </select>
 
-            <textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} required className="w-full border p-2 text-xs rounded" rows={3}></textarea>
+            {/* Sub Category Dropdown */}
+            <label className="block text-[11px] font-bold text-gray-600">Sub-Category:</label>
+            <select value={selectedSubCat} onChange={(e) => setSelectedSubCat(e.target.value)} className="w-full border p-2 text-xs rounded font-medium text-gray-700">
+              <option value="">None / Select Sub-Category</option>
+              {activeSubCategories.map((sub) => (
+                <option key={sub} value={sub}>{sub}</option>
+              ))}
+            </select>
+
+            <textarea placeholder="Description (Search tags will automatically read this)" value={description} onChange={(e) => setDescription(e.target.value)} required className="w-full border p-2 text-xs rounded" rows={3}></textarea>
             <button className="w-full bg-[#f57224] text-white font-bold py-2 rounded text-xs hover:bg-orange-600 transition">Publish Product</button>
           </form>
         </div>
 
-        {/* Category Manager (NEW SECTION) */}
-        <div className="bg-white p-5 rounded-2xl shadow border border-gray-200">
-          <h3 className="font-bold text-gray-800 mb-3 border-b pb-2 text-sm">📁 Category Manager</h3>
-          <form onSubmit={handleCategorySubmit} className="space-y-3 mb-4">
-            <input 
-              type="text" 
-              placeholder="New Category Name" 
-              value={newCategory} 
-              onChange={(e) => setNewCategory(e.target.value)} 
-              required 
-              className="w-full border p-2 text-xs rounded" 
-            />
-            <button className="w-full bg-blue-600 text-white font-bold py-2 rounded text-xs hover:bg-blue-700 transition">Add Category</button>
-          </form>
+        {/* Category & Sub-Category Manager */}
+        <div className="bg-white p-5 rounded-2xl shadow border border-gray-200 space-y-4">
+          <div>
+            <h3 className="font-bold text-gray-800 mb-2 border-b pb-1 text-sm">📁 Add Main Category</h3>
+            <form onSubmit={handleAddCategorySubmit} className="flex gap-2">
+              <input type="text" placeholder="Category Name" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} required className="flex-1 border p-1.5 text-xs rounded" />
+              <button className="bg-blue-600 text-white font-bold px-3 py-1.5 rounded text-xs hover:bg-blue-700">Add</button>
+            </form>
+          </div>
 
-          <div className="space-y-2 max-h-56 overflow-y-auto">
-            <h4 className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Active Categories ({categories.length})</h4>
-            {categories.map((cat) => (
-              <div key={cat} className="flex justify-between items-center bg-gray-50 p-2 rounded border text-xs">
-                <span className="font-semibold text-gray-700">{cat}</span>
-                {deleteCategory && (
-                  <button 
-                    onClick={() => deleteCategory(cat)} 
-                    className="text-red-500 font-bold hover:text-red-700 px-1"
-                    title="Delete Category"
-                  >
-                    ✕
-                  </button>
-                )}
+          <div>
+            <h3 className="font-bold text-gray-800 mb-2 border-b pb-1 text-sm">📂 Add Sub-Category</h3>
+            <form onSubmit={handleAddSubCategorySubmit} className="space-y-2">
+              <select value={targetCategoryForSub} onChange={(e) => setTargetCategoryForSub(e.target.value)} className="w-full border p-1.5 text-xs rounded">
+                {categoryData.map((c) => (
+                  <option key={c.name} value={c.name}>{c.name}</option>
+                ))}
+              </select>
+              <div className="flex gap-2">
+                <input type="text" placeholder="Sub-Category Name" value={newSubCategoryName} onChange={(e) => setNewSubCategoryName(e.target.value)} required className="flex-1 border p-1.5 text-xs rounded" />
+                <button className="bg-emerald-600 text-white font-bold px-3 py-1.5 rounded text-xs hover:bg-emerald-700">Add</button>
+              </div>
+            </form>
+          </div>
+
+          {/* Active Categories and Subcategories Tree */}
+          <div className="max-h-48 overflow-y-auto space-y-2 border-t pt-2">
+            <h4 className="text-[11px] font-bold text-gray-500 uppercase">Active Category Structure:</h4>
+            {categoryData.map((c) => (
+              <div key={c.name} className="bg-gray-50 p-2 rounded border text-xs">
+                <div className="flex justify-between items-center font-bold text-gray-800">
+                  <span>{c.name}</span>
+                  <button onClick={() => deleteCategory(c.name)} className="text-red-500 hover:text-red-700 font-bold px-1" title="Delete Main Category">✕</button>
+                </div>
+                <div className="pl-3 mt-1 space-y-1 border-l-2 border-orange-400">
+                  {(c.subCategories || []).length === 0 ? (
+                    <span className="text-[10px] text-gray-400 italic">No sub-categories</span>
+                  ) : (
+                    (c.subCategories || []).map((sub) => (
+                      <div key={sub} className="flex justify-between items-center text-[11px] text-gray-600">
+                        <span>• {sub}</span>
+                        <button onClick={() => deleteSubCategory(c.name, sub)} className="text-red-400 hover:text-red-600 font-bold px-1" title="Delete Sub-Category">✕</button>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -186,7 +233,6 @@ export default function AdminView() {
           </form>
 
           <div className="space-y-2 max-h-56 overflow-y-auto">
-            <h4 className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Active Footer Links</h4>
             {footerLinks.map((fl) => (
               <div key={fl.id} className="flex justify-between items-center bg-gray-50 p-2 rounded border text-xs">
                 <span className="truncate max-w-[150px]">{fl.title}</span>
