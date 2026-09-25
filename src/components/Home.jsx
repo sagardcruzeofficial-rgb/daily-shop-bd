@@ -1,85 +1,52 @@
 import React, { useContext } from 'react';
 import { StoreContext } from '../context/StoreContext';
-import ProductCard from './ProductCard';
 
-export default function Home() {
-  const { 
-    filteredProducts = [], 
-    categoryData = [], 
-    selectedCategory, 
-    setSelectedCategory, 
-    selectedSubCategory, 
-    setSelectedSubCategory 
-  } = useContext(StoreContext);
+export default function ProductCard({ product }) {
+  const { addToCart, setSelectedProduct, startCheckout } = useContext(StoreContext);
 
-  const currentCatObj = categoryData.find(c => c.name === selectedCategory);
-  const currentSubCategories = currentCatObj ? currentCatObj.subCategories || [] : [];
+  if (!product) return null;
 
   return (
-    <div className="max-w-[1300px] mx-auto px-4 py-6 font-sans">
-      
-      {/* Main Category Tabs */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        <button
-          onClick={() => { setSelectedCategory('All'); setSelectedSubCategory('All'); }}
-          className={`px-4 py-1.5 rounded-full text-xs font-bold transition ${
-            selectedCategory === 'All' ? 'bg-[#f57224] text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-        >
-          All Products
-        </button>
-        {categoryData.map((cat) => (
-          <button
-            key={cat.name}
-            onClick={() => { setSelectedCategory(cat.name); setSelectedSubCategory('All'); }}
-            className={`px-4 py-1.5 rounded-full text-xs font-bold transition ${
-              selectedCategory === cat.name ? 'bg-[#f57224] text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            {cat.name}
-          </button>
-        ))}
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between group">
+      <div className="cursor-pointer relative" onClick={() => setSelectedProduct && setSelectedProduct(product)}>
+        <img 
+          src={product.image} 
+          alt={product.title} 
+          className="w-full h-44 object-cover group-hover:scale-105 transition duration-300" 
+        />
+        
+        {/* Sub-Category Badge */}
+        {product.subCategory && (
+          <span className="absolute top-2 left-2 bg-black/70 text-white text-[9px] px-2 py-0.5 rounded-full font-medium backdrop-blur-sm">
+            {product.subCategory}
+          </span>
+        )}
+
+        <div className="p-3">
+          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block mb-0.5">
+            {product.category}
+          </span>
+          <h3 className="text-xs font-bold text-gray-800 line-clamp-1 group-hover:text-[#f57224] transition">
+            {product.title}
+          </h3>
+          <p className="text-sm font-black text-[#f57224] mt-1">৳{product.price}</p>
+        </div>
       </div>
 
-      {/* Sub Category Pills */}
-      {selectedCategory !== 'All' && currentSubCategories.length > 0 && (
-        <div className="mb-6 flex flex-wrap gap-2 bg-orange-50 p-3 rounded-xl border border-orange-100">
-          <button
-            onClick={() => setSelectedSubCategory('All')}
-            className={`px-3 py-1 rounded-md text-xs font-semibold ${
-              selectedSubCategory === 'All' ? 'bg-orange-500 text-white' : 'bg-white text-gray-600 border border-orange-200'
-            }`}
-          >
-            All {selectedCategory}
-          </button>
-          {currentSubCategories.map((sub) => (
-            <button
-              key={sub}
-              onClick={() => setSelectedSubCategory(sub)}
-              className={`px-3 py-1 rounded-md text-xs font-semibold ${
-                selectedSubCategory === sub ? 'bg-orange-500 text-white' : 'bg-white text-gray-600 border border-orange-200'
-              }`}
-            >
-              {sub}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Product Grid */}
-      {filteredProducts.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-300">
-          <span className="text-4xl">🛍️</span>
-          <h4 className="text-base font-bold text-gray-700 mt-2">No Products Found!</h4>
-          <p className="text-xs text-gray-400 mt-1">Try selecting a different category or sub-category.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {filteredProducts.map((prod) => (
-            <ProductCard key={prod.id} product={prod} />
-          ))}
-        </div>
-      )}
+      <div className="p-3 pt-0 grid grid-cols-2 gap-2">
+        <button 
+          onClick={() => addToCart && addToCart(product)}
+          className="bg-orange-50 border border-orange-200 text-[#f57224] text-[11px] font-bold py-2 rounded-lg hover:bg-orange-100 transition"
+        >
+          Add to Cart
+        </button>
+        <button 
+          onClick={() => startCheckout && startCheckout([product])}
+          className="bg-[#f57224] text-white text-[11px] font-bold py-2 rounded-lg hover:bg-orange-600 shadow-sm transition"
+        >
+          Buy Now
+        </button>
+      </div>
     </div>
   );
 }
