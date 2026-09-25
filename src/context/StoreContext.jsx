@@ -114,6 +114,8 @@ export const StoreProvider = ({ children }) => {
 
   // Save cart to Firestore or LocalStorage automatically on change
   useEffect(() => {
+    if (loading) return; // Prevent saving during initial load phase
+    
     const saveCartToCloudOrLocal = async () => {
       if (currentUser) {
         try {
@@ -128,7 +130,7 @@ export const StoreProvider = ({ children }) => {
     };
 
     saveCartToCloudOrLocal();
-  }, [cart, currentUser]);
+  }, [cart, currentUser, loading]);
 
   const saveCategoriesToFirebase = async (updatedCategories) => {
     try {
@@ -142,7 +144,13 @@ export const StoreProvider = ({ children }) => {
   const categories = categoryData.map(c => c.name);
 
   const addToCart = (product) => {
-    setCart((prev) => [...prev, { ...product, selected: true }]);
+    setCart((prev) => {
+      const exists = prev.some((item) => item.id === product.id);
+      if (exists) {
+        return prev;
+      }
+      return [...prev, { ...product, selected: true }];
+    });
   };
 
   const toggleSelectItem = (index) => {
