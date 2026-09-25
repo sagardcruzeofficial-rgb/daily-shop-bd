@@ -10,10 +10,13 @@ import {
   setDoc,
   getDoc
 } from 'firebase/firestore';
+import { useAuth } from './AuthContext';
 
 export const StoreContext = createContext();
 
 export const StoreProvider = ({ children }) => {
+  const { currentUser } = useAuth();
+
   // Empty default products so dummy items don't block deletion
   const defaultProducts = [];
 
@@ -44,7 +47,7 @@ export const StoreProvider = ({ children }) => {
   const [checkoutItems, setCheckoutItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch data from Firebase Firestore
+  // Fetch initial data & User Cart from Firebase Firestore
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -77,6 +80,58 @@ export const StoreProvider = ({ children }) => {
 
     fetchData();
   }, []);
+
+  // Fetch cart whenever currentUser changes (Login / Logout)
+  useEffect(() => {
+    const fetchUserCart = async () => {
+      if (currentUser) {
+        try {
+          const cartRef = doc(db, 'carts', currentUser.uid);
+          const cartSnap = await getDoc(cartRef);
+          if (cartSnap.exists()) {
+            setCart(cartSnap.data().items || []);
+          } else {
+            setCart([]);
+          }
+        } catch (error) {
+          console.error("Error fetching cart from Firestore:", error);
+        }
+      } else {
+        // Fallback to localStorage if logged out
+        const localCart = localStorage.getItem('dailyShopCart');
+        if (localCart) {
+          try {
+            setCart(JSON.parse(localCart));
+          } catch (e) {
+            setCart([]);
+          }
+        } else {
+          setCart([]);
+        }
+      }
+    };
+
+    fetchUserCart();
+  }, [currentUser]);
+
+  // Save cart to Firestore or LocalStorage whenever cart state updates
+  useEffect(() => {
+    const saveCartToCloudOrLocal = async () => {
+      if (currentUser) {
+        try {
+          const cartRef = doc(db, 'carts', currentUser.uid);
+          await setDoc(cartRef, { items: cart }, { merge: true });
+        } catch (error) {
+          console.error("Error saving cart to Firestore:", error);
+        }
+      } else {
+        localStorage.setItem('dailyShopCart', JSON.stringify(cart));
+      }
+    };
+
+    // Prevent saving empty initial render over existing data incorrectly if needed
+    saveCartToCloudOrLocal();
+  }, [cart, currentUser]);
 
   // Helper function to sync categories with Firebase reliably
   const saveCategoriesToFirebase = async (updatedCategories) => {
@@ -228,7 +283,6 @@ export const StoreProvider = ({ children }) => {
   };
 
   const startCheckout = (items) => {
-    // Filter only selected items for checkout
     const itemsToBuy = (items || cart).filter(item => item.selected !== false);
     if (itemsToBuy.length === 0) {
       alert("দয়া করে কমপক্ষে একটি প্রোডাক্ট সিলেক্ট করুন!");
