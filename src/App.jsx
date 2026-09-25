@@ -4,17 +4,15 @@ import CategorySidebar from './components/CategorySidebar';
 import ProductCard from './components/ProductCard';
 import ProductDetailModal from './components/ProductDetailModal';
 import AdminView from './components/AdminView';
+import CheckoutPage from './components/CheckoutPage';
 import Footer from './components/Footer';
 import { StoreContext } from './context/StoreContext';
 
 export default function App() {
   const { products, categories, activeTab } = useContext(StoreContext);
 
-  // Detect domain name or URL query parameter
   const currentHost = window.location.hostname;
   const urlParams = new URLSearchParams(window.location.search);
-  
-  // Show Admin if hostname contains 'admin' OR '?admin=true' in URL
   const isAdminDomain = currentHost.includes('admin') || urlParams.get('admin') === 'true';
 
   if (isAdminDomain) {
@@ -30,14 +28,13 @@ export default function App() {
       <Navbar />
 
       <main className="flex-1">
-        <div className="max-w-[1300px] mx-auto px-4 py-6">
-          {activeTab === 'Home' ? (
+        {activeTab === 'Checkout' ? (
+          <CheckoutPage />
+        ) : activeTab === 'Home' ? (
+          <div className="max-w-[1300px] mx-auto px-4 py-6">
             <div className="flex flex-col lg:flex-row gap-6">
-              
-              {/* Left Category Menu */}
               <CategorySidebar />
 
-              {/* Right Category Blocks */}
               <div className="flex-1 space-y-10">
                 {categories.map((cat) => {
                   const categoryProducts = products.filter(p => p.category === cat);
@@ -52,7 +49,6 @@ export default function App() {
                         <span className="text-xs text-orange-600 font-bold">Featured Items</span>
                       </div>
 
-                      {/* 4-column grid */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {categoryProducts.map((prod) => (
                           <ProductCard key={prod.id} product={prod} />
@@ -62,15 +58,16 @@ export default function App() {
                   );
                 })}
               </div>
-
             </div>
-          ) : (
+          </div>
+        ) : (
+          <div className="max-w-[1300px] mx-auto px-4 py-6">
             <div className="bg-white p-8 rounded-xl shadow border min-h-[350px]">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">{activeTab}</h2>
-              <p className="text-gray-600 text-sm">Welcome to the {activeTab} page of DailyShop BD.</p>
+              <p className="text-gray-600 text-sm">Welcome to the {activeTab} page of DailyShopBD.</p>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </main>
 
       <ProductDetailModal />
