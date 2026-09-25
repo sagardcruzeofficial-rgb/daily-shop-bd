@@ -9,10 +9,21 @@ import Footer from './components/Footer';
 import { StoreContext } from './context/StoreContext';
 
 export default function App() {
-  const { products, categories, activeTab } = useContext(StoreContext);
+  const store = useContext(StoreContext);
 
-  const currentHost = window.location.hostname;
-  const urlParams = new URLSearchParams(window.location.search);
+  // StoreContext ready/loaded naki check
+  if (!store) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 font-sans">
+        <p className="text-gray-600 font-bold">Loading DailyShopBD Store...</p>
+      </div>
+    );
+  }
+
+  const { products = [], categories = [], activeTab = 'Home' } = store;
+
+  const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const isAdminDomain = currentHost.includes('admin') || urlParams.get('admin') === 'true';
 
   if (isAdminDomain) {
