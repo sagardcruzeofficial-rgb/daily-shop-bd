@@ -5,7 +5,7 @@ import CartModal from './CartModal';
 
 export default function Navbar() {
   const { cart, activeTab, setActiveTab, searchQuery, setSearchQuery } = useContext(StoreContext);
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, loading: authLoading } = useAuth();
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   const handleSearchChange = (e) => {
@@ -18,8 +18,8 @@ export default function Navbar() {
   async function handleLogout() {
     try {
       await logout();
-    } catch {
-      console.error('Failed to log out');
+    } catch (error) {
+      console.error('Failed to log out', error);
     }
   }
 
@@ -80,34 +80,36 @@ export default function Navbar() {
               <button onClick={() => setActiveTab('Contact Us')} className={`hover:text-[#f57224] ${activeTab === 'Contact Us' && 'text-[#f57224] font-bold'}`}>Contact Us</button>
             </nav>
 
-            {/* Auth Section */}
-            {currentUser ? (
-              <div className="flex items-center gap-3">
-                <span className="text-gray-800 font-bold hidden xl:inline">
-                  👤 {currentUser.displayName || currentUser.email}
-                </span>
-                <button
-                  onClick={handleLogout}
-                  className="bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition"
-                >
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => setActiveTab('Login')} 
-                  className="text-[#f57224] border border-[#f57224] px-3 py-1.5 rounded-lg hover:bg-orange-50 transition"
-                >
-                  Login
-                </button>
-                <button 
-                  onClick={() => setActiveTab('Register')} 
-                  className="bg-[#f57224] text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 transition"
-                >
-                  Register
-                </button>
-              </div>
+            {/* Auth Section with Loading Guard */}
+            {!authLoading && (
+              currentUser ? (
+                <div className="flex items-center gap-3">
+                  <span className="text-gray-800 font-bold hidden xl:inline">
+                    👤 {currentUser.displayName || currentUser.email}
+                  </span>
+                  <button
+                    onClick={handleLogout}
+                    className="bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => setActiveTab('Login')} 
+                    className="text-[#f57224] border border-[#f57224] px-3 py-1.5 rounded-lg hover:bg-orange-50 transition"
+                  >
+                    Login
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('Register')} 
+                    className="bg-[#f57224] text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 transition"
+                  >
+                    Register
+                  </button>
+                </div>
+              )
             )}
 
             {/* Cart Widget Click opens Slide-over Modal */}
