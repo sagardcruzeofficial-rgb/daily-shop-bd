@@ -1,14 +1,12 @@
 import React, { useContext, useState } from 'react';
 import { StoreContext } from '../context/StoreContext';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import CartModal from './CartModal';
 
 export default function Navbar() {
   const { cart, activeTab, setActiveTab, searchQuery, setSearchQuery } = useContext(StoreContext);
   const { currentUser, logout } = useAuth();
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const navigate = useNavigate();
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -98,13 +96,13 @@ export default function Navbar() {
             ) : (
               <div className="flex items-center gap-2">
                 <button 
-                  onClick={() => navigate('/login')} 
+                  onClick={() => setActiveTab('Login')} 
                   className="text-[#f57224] border border-[#f57224] px-3 py-1.5 rounded-lg hover:bg-orange-50 transition"
                 >
                   Login
                 </button>
                 <button 
-                  onClick={() => navigate('/register')} 
+                  onClick={() => setActiveTab('Register')} 
                   className="bg-[#f57224] text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 transition"
                 >
                   Register
