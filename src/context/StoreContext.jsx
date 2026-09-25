@@ -49,6 +49,8 @@ export const StoreProvider = ({ children }) => {
     { id: 4, title: 'Terms & Conditions', url: '#terms' }
   ];
 
+  const defaultCategories = ['Fashion', 'Electronics', 'Gadgets'];
+
   const [products, setProducts] = useState(() => {
     try {
       const local = localStorage.getItem('daily_shop_products');
@@ -76,7 +78,16 @@ export const StoreProvider = ({ children }) => {
     }
   });
 
-  const [categories] = useState(['Fashion', 'Electronics', 'Gadgets']);
+  // Dynamic Categories State with LocalStorage
+  const [categories, setCategories] = useState(() => {
+    try {
+      const local = localStorage.getItem('daily_shop_categories');
+      return local ? JSON.parse(local) : defaultCategories;
+    } catch {
+      return defaultCategories;
+    }
+  });
+
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [cart, setCart] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -94,6 +105,10 @@ export const StoreProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('daily_shop_footer', JSON.stringify(footerLinks));
   }, [footerLinks]);
+
+  useEffect(() => {
+    localStorage.setItem('daily_shop_categories', JSON.stringify(categories));
+  }, [categories]);
 
   const addToCart = (product) => {
     setCart((prev) => [...prev, product]);
@@ -129,6 +144,18 @@ export const StoreProvider = ({ children }) => {
     setFooterLinks((prev) => prev.filter((f) => f.id !== id));
   };
 
+  // Add Category Function
+  const addCategory = (newCat) => {
+    if (newCat && !categories.includes(newCat)) {
+      setCategories((prev) => [...prev, newCat]);
+    }
+  };
+
+  // Delete Category Function
+  const deleteCategory = (catName) => {
+    setCategories((prev) => prev.filter((c) => c !== catName));
+  };
+
   const startCheckout = (items) => {
     setCheckoutItems(items);
     setActiveTab('Checkout');
@@ -140,7 +167,8 @@ export const StoreProvider = ({ children }) => {
       selectedProduct, setSelectedProduct, activeTab, setActiveTab,
       orders, footerLinks, checkoutItems, startCheckout,
       addToCart, removeFromCart, clearCart, addProduct, deleteProduct,
-      addOrder, deleteOrder, addFooterLink, deleteFooterLink
+      addOrder, deleteOrder, addFooterLink, deleteFooterLink,
+      addCategory, deleteCategory
     }}>
       {children}
     </StoreContext.Provider>
