@@ -1,10 +1,14 @@
 import React, { useContext, useState } from 'react';
 import { StoreContext } from '../context/StoreContext';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import CartModal from './CartModal';
 
 export default function Navbar() {
   const { cart, activeTab, setActiveTab, searchQuery, setSearchQuery } = useContext(StoreContext);
+  const { currentUser, logout } = useAuth();
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -12,6 +16,14 @@ export default function Navbar() {
       setActiveTab('Home');
     }
   };
+
+  async function handleLogout() {
+    try {
+      await logout();
+    } catch {
+      console.error('Failed to log out');
+    }
+  }
 
   return (
     <>
@@ -61,14 +73,44 @@ export default function Navbar() {
             </button>
           </div>
 
-          {/* Top Right: Navigation & Cart Icon */}
-          <div className="flex items-center gap-6 text-xs font-semibold text-gray-700">
-            <nav className="hidden lg:flex gap-5">
+          {/* Top Right: Navigation, Cart & Auth */}
+          <div className="flex items-center gap-5 text-xs font-semibold text-gray-700">
+            <nav className="hidden lg:flex gap-4 items-center">
               <button onClick={() => setActiveTab('Home')} className={`hover:text-[#f57224] ${activeTab === 'Home' && 'text-[#f57224] font-bold'}`}>Home</button>
               <button onClick={() => setActiveTab('About Us')} className={`hover:text-[#f57224] ${activeTab === 'About Us' && 'text-[#f57224] font-bold'}`}>About Us</button>
               <button onClick={() => setActiveTab('Privacy Policy')} className={`hover:text-[#f57224] ${activeTab === 'Privacy Policy' && 'text-[#f57224] font-bold'}`}>Privacy Policy</button>
               <button onClick={() => setActiveTab('Contact Us')} className={`hover:text-[#f57224] ${activeTab === 'Contact Us' && 'text-[#f57224] font-bold'}`}>Contact Us</button>
             </nav>
+
+            {/* Auth Section */}
+            {currentUser ? (
+              <div className="flex items-center gap-3">
+                <span className="text-gray-800 font-bold hidden xl:inline">
+                  👤 {currentUser.displayName || currentUser.email}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => navigate('/login')} 
+                  className="text-[#f57224] border border-[#f57224] px-3 py-1.5 rounded-lg hover:bg-orange-50 transition"
+                >
+                  Login
+                </button>
+                <button 
+                  onClick={() => navigate('/register')} 
+                  className="bg-[#f57224] text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 transition"
+                >
+                  Register
+                </button>
+              </div>
+            )}
 
             {/* Cart Widget Click opens Slide-over Modal */}
             <div 
