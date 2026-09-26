@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import Navbar from './components/Navbar';
 import CategorySidebar from './components/CategorySidebar';
 import ProductCard from './components/ProductCard';
@@ -9,6 +9,62 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Footer from './components/Footer';
 import { StoreContext } from './context/StoreContext';
+
+// Admin Password Protection Wrapper Component
+const AdminAuthWrapper = ({ children }) => {
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(
+    sessionStorage.getItem('adminAuth') === 'true'
+  );
+  const [passwordInput, setPasswordInput] = useState('');
+  const [error, setError] = useState(false);
+
+  // আপনার ইচ্ছামতো অ্যাডমিন পাসওয়ার্ড এখানে পরিবর্তন করে নিতে পারেন
+  const ADMIN_SECRET_PASSWORD = "DailyShopBDAdmin123"; 
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (passwordInput === ADMIN_SECRET_PASSWORD) {
+      setIsAdminAuthenticated(true);
+      sessionStorage.setItem('adminAuth', 'true');
+      setError(false);
+    } else {
+      setError(true);
+      setPasswordInput('');
+    }
+  };
+
+  if (!isAdminAuthenticated) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 font-sans">
+        <div className="p-8 bg-white rounded-2xl shadow-md w-96 border border-gray-200">
+          <h2 className="mb-6 text-xl font-black text-center text-gray-800 border-b pb-3">Admin Panel Security</h2>
+          <form onSubmit={handleLogin}>
+            <div className="mb-4">
+              <label className="block mb-2 text-xs font-bold text-gray-600 uppercase tracking-wider">Enter Admin Password</label>
+              <input
+                type="password"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                placeholder="Password..."
+                className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#f57224] text-sm"
+                required
+              />
+            </div>
+            {error && <p className="mb-4 text-xs font-bold text-red-500">ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।</p>}
+            <button
+              type="submit"
+              className="w-full py-2.5 font-bold text-white bg-[#f57224] rounded-xl hover:bg-orange-600 transition duration-200 text-sm shadow-sm"
+            >
+              Login to Admin
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  return children;
+};
 
 export default function App() {
   const store = useContext(StoreContext);
@@ -39,9 +95,11 @@ export default function App() {
 
   if (isAdminDomain) {
     return (
-      <div className="bg-[#f8fafc] min-h-screen">
-        <AdminView />
-      </div>
+      <AdminAuthWrapper>
+        <div className="bg-[#f8fafc] min-h-screen">
+          <AdminView />
+        </div>
+      </AdminAuthWrapper>
     );
   }
 
