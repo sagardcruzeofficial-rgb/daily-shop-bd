@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import CategorySidebar from './components/CategorySidebar';
 import ProductCard from './components/ProductCard';
@@ -19,7 +19,7 @@ const AdminAuthWrapper = ({ children }) => {
   const [passwordInput, setPasswordInput] = useState('');
   const [error, setError] = useState(false);
 
-  // আপনার ফিক্সড করা অ্যাডমিন আইডি ও পাসওয়ার্ড
+  // Apnar fixed kora admin ID o password
   const ADMIN_USER = "Sagar Dcruze";
   const ADMIN_PASS = "sAgar2002@#";
 
@@ -70,7 +70,7 @@ const AdminAuthWrapper = ({ children }) => {
                 required
               />
             </div>
-            {error && <p className="mb-4 text-xs font-bold text-red-500">ভুল ইউজারনেম অথবা পাসওয়ার্ড! আবার চেষ্টা করুন।</p>}
+            {error && <p className="mb-4 text-xs font-bold text-red-500">Bhul username othoba password! Abar chesta korun.</p>}
             <button
               type="submit"
               className="w-full py-2.5 font-bold text-white bg-[#f57224] rounded-xl hover:bg-orange-600 transition duration-200 text-sm shadow-sm"
@@ -105,6 +105,20 @@ const AdminAuthWrapper = ({ children }) => {
 };
 
 export default function App() {
+  // Adsterra Social Bar Script Auto-injection
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = "https://pl31521197.profitableratecpmnetwork.com/bf/7f/c0/bf7fc0f2e24c8a78a159f536cd65c863.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
+  }, []);
+
   const store = useContext(StoreContext);
 
   if (!store) {
