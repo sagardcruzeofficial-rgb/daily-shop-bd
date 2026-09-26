@@ -24,7 +24,7 @@ export default function CheckoutPage() {
     e.preventDefault();
 
     if (checkoutItems.length === 0) {
-      alert('আপনার অর্ডার তালিকায় কোনো প্রোডাক্ট নেই!');
+      alert('আপনার অর্ডার তালিকায় কোনো প্রোডাক্ট নেই!');
       return;
     }
 
@@ -35,12 +35,14 @@ export default function CheckoutPage() {
 
     const itemDetails = checkoutItems.map((item, idx) => `- ${item.title} (Size: ${selectedSizes[idx]}): ৳${item.price}`).join('\n');
 
-    // Admin Panel Order Push
+    // Admin Panel Order Push with Supplier Info
     checkoutItems.forEach((item, idx) => {
       addOrder({
         productTitle: item.title,
         price: item.price,
         size: selectedSizes[idx],
+        supplierName: item.supplierName || 'DropShop', // সাপ্লায়ারের নাম যুক্ত করা হলো
+        supplierUrl: item.supplierUrl || '',           // সাপ্লায়ারের লিঙ্ক যুক্ত করা হলো
         customerName,
         phone,
         address,
@@ -61,7 +63,7 @@ export default function CheckoutPage() {
       `*Phone:* ${phone}\n` +
       `*Address:* ${address}`;
 
-    alert('অর্ডার সফলভাবে সম্পন্ন হয়েছে! এডমিন প্যানেলে জমা হয়েছে।');
+    alert('অর্ডার সফলভাবে সম্পন্ন হয়েছে! এডমিন প্যানেলে জমা হয়েছে।');
     
     // Clear Cart & Redirect to Home
     clearCart();
@@ -107,6 +109,7 @@ export default function CheckoutPage() {
                   <img src={item.image} alt={item.title} className="w-16 h-16 object-cover rounded-lg bg-white border" />
                   <div className="flex-1">
                     <h3 className="text-xs font-bold text-gray-800">{item.title}</h3>
+                    <p className="text-[10px] text-orange-600 font-semibold">Supplier: {item.supplierName || 'DropShop'}</p>
                     <p className="text-xs font-black text-[#f57224] mt-1">৳{item.price}</p>
                     
                     {/* Size Selector */}
