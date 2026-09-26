@@ -16,7 +16,7 @@ export default function AdminView() {
   const [selectedSubCat, setSelectedSubCat] = useState('');
   const [description, setDescription] = useState('');
   const [supplierUrl, setSupplierUrl] = useState('');
-  const [supplierName, setSupplierName] = useState('DropShop'); // নতুন সাপ্লায়ার সিলেক্টর স্টেট
+  const [supplierName, setSupplierName] = useState('DropShop');
   const [sizesInput, setSizesInput] = useState('M, L, XL, XXL');
   const [isFetching, setIsFetching] = useState(false);
 
@@ -73,7 +73,6 @@ export default function AdminView() {
   const handleProductSubmit = (e) => {
     e.preventDefault();
 
-    // Process comma-separated sizes into an array
     const parsedSizes = sizesInput
       ? sizesInput.split(',').map(s => s.trim()).filter(Boolean)
       : ['Standard'];
@@ -86,8 +85,8 @@ export default function AdminView() {
       subCategory: selectedSubCat,
       description, 
       sizes: parsedSizes,
-      supplierName: supplierName, // কোন সাইটের প্রোডাক্ট তা সেভ হবে
-      supplierUrl: supplierUrl.trim() // Secret supplier link
+      supplierName: supplierName, 
+      supplierUrl: supplierUrl.trim() 
     });
 
     setTitle(''); setPrice(''); setImage(''); setDescription(''); setSupplierUrl(''); setSizesInput('M, L, XL, XXL');
@@ -147,7 +146,7 @@ export default function AdminView() {
         </div>
       </div>
 
-      {/* 1. Customer Orders with Supplier Tracker */}
+      {/* 1. Customer Orders with Supplier Tracker & Payment Info */}
       <div className="bg-white p-6 rounded-2xl shadow border border-gray-200 mb-8">
         <h3 className="font-bold text-gray-800 text-base mb-4 border-b pb-2">📦 Customer Website Orders ({orders ? orders.length : 0})</h3>
         {!orders || orders.length === 0 ? (
@@ -160,6 +159,7 @@ export default function AdminView() {
                   <th className="p-2 border">Date</th>
                   <th className="p-2 border">Product & Supplier Info</th>
                   <th className="p-2 border">Price</th>
+                  <th className="p-2 border">Payment Details</th>
                   <th className="p-2 border">Customer</th>
                   <th className="p-2 border">Phone</th>
                   <th className="p-2 border">Address</th>
@@ -168,7 +168,6 @@ export default function AdminView() {
               </thead>
               <tbody>
                 {orders.map((ord) => {
-                  // অর্ডারের সাথে যুক্ত প্রোডাক্ট খুঁজে বের করা যাতে সাপ্লায়ার ইনফো পাওয়া যায়
                   const matchedProduct = products.find(p => p.title === ord.productTitle);
                   const supName = ord.supplierName || (matchedProduct ? matchedProduct.supplierName : 'DropShop');
                   const supUrl = ord.supplierUrl || (matchedProduct ? matchedProduct.supplierUrl : '');
@@ -192,6 +191,22 @@ export default function AdminView() {
                         </div>
                       </td>
                       <td className="p-2 border font-bold text-orange-600">৳{ord.price}</td>
+                      
+                      {/* 💳 Payment Method, Sender No & TrxID column */}
+                      <td className="p-2 border">
+                        <span className={`inline-block px-2 py-0.5 rounded font-black text-[10px] ${
+                          ord.paymentMethod === 'COD' ? 'bg-gray-200 text-gray-800' : 'bg-pink-100 text-pink-700'
+                        }`}>
+                          {ord.paymentMethod || 'COD'}
+                        </span>
+                        {ord.paymentMethod && ord.paymentMethod !== 'COD' && (
+                          <div className="mt-1 space-y-0.5 text-[10px] font-mono">
+                            <p><strong>Sender:</strong> {ord.senderPhone}</p>
+                            <p><strong>TrxID:</strong> <span className="text-orange-600 font-bold">{ord.trxId}</span></p>
+                          </div>
+                        )}
+                      </td>
+
                       <td className="p-2 border font-semibold">{ord.customerName}</td>
                       <td className="p-2 border text-blue-600">{ord.phone}</td>
                       <td className="p-2 border max-w-xs">{ord.address}</td>
