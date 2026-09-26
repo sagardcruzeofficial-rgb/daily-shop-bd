@@ -9,32 +9,54 @@ export default function ProductDetailModal() {
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('cod'); // cod, bkash, nagad, rocket
+  const [trxId, setTrxId] = useState('');
+  const [senderPhone, setSenderPhone] = useState('');
 
   if (!selectedProduct) return null;
 
   const handleOrderSubmit = (e) => {
     e.preventDefault();
+
+    if ((paymentMethod === 'bkash' || paymentMethod === 'nagad' || paymentMethod === 'rocket') && (!trxId || !senderPhone)) {
+      alert('অনুগ্রহ করে Sender Mobile Number এবং Transaction ID (TrxID) প্রদান করুন।');
+      return;
+    }
+
     const sizeVal = selectedSize || selectedProduct.sizes?.[0] || 'Standard';
 
-    // 1. Save to Web Admin Panel with Supplier Info
+    // 1. Save to Web Admin Panel with Payment & Supplier Info
     const newOrder = {
       productTitle: selectedProduct.title,
       price: selectedProduct.price,
       size: sizeVal,
-      supplierName: selectedProduct.supplierName || 'DropShop', // সাপ্লায়ারের নাম যুক্ত করা হলো
-      supplierUrl: selectedProduct.supplierUrl || '',           // সাপ্লায়ারের গোপন লিঙ্ক যুক্ত করা হলো
+      supplierName: selectedProduct.supplierName || 'DropShop',
+      supplierUrl: selectedProduct.supplierUrl || '',
       customerName,
       phone,
-      address
+      address,
+      paymentMethod: paymentMethod.toUpperCase(),
+      trxId: paymentMethod !== 'cod' ? trxId : 'N/A',
+      senderPhone: paymentMethod !== 'cod' ? senderPhone : 'N/A'
     };
     addOrder(newOrder);
 
-    // 2. Format WhatsApp Message with full Address & Supplier Info reminder
-    const whatsappMsg = `📦 *NEW ORDER CONFIRMED!*\n\n*Product:* ${selectedProduct.title}\n*Price:* ৳${selectedProduct.price}\n*Size:* ${sizeVal}\n*Supplier:* ${selectedProduct.supplierName || 'DropShop'}\n\n👤 *Customer Details:*\n*Name:* ${customerName}\n*Phone:* ${phone}\n*Delivery Address:* ${address}\n\nPlease deliver this product as soon as possible.`;
+    // 2. Format WhatsApp Message with Payment Details
+    const whatsappMsg = `🛍️ *NEW ORDER CONFIRMED - DailyShopBD*\n\n` +
+      `*Product:* ${selectedProduct.title}\n` +
+      `*Price:* ৳${selectedProduct.price}\n` +
+      `*Size:* ${sizeVal}\n` +
+      `*Supplier:* ${selectedProduct.supplierName || 'DropShop'}\n` +
+      `*Payment Method:* ${paymentMethod.toUpperCase()}\n` +
+      (paymentMethod !== 'cod' ? `*Sender Mobile:* ${senderPhone}\n*TrxID:* ${trxId}\n` : '') +
+      `\n👤 *Customer Details:*\n` +
+      `*Name:* ${customerName}\n` +
+      `*Phone:* ${phone}\n` +
+      `*Address:* ${address}`;
 
     const whatsappUrl = `https://wa.me/8801705507447?text=${encodeURIComponent(whatsappMsg)}`;
     
-    alert('Your order has been recorded! Redirecting to WhatsApp to send details.');
+    alert('অর্ডার সফলভাবে সম্পন্ন হয়েছে! হোয়াটসঅ্যাপে রিডাইরেক্ট করা হচ্ছে।');
     window.open(whatsappUrl, '_blank');
     
     // Reset Modal
@@ -68,7 +90,7 @@ export default function ProductDetailModal() {
               <div className="text-2xl font-black text-[#f57224] mb-3">৳{selectedProduct.price}</div>
               <p className="text-gray-600 text-xs mb-4 leading-relaxed">{selectedProduct.description}</p>
 
-              {/* Size Option (For Shoes, T-Shirts, etc.) */}
+              {/* Size Option */}
               {selectedProduct.sizes && selectedProduct.sizes.length > 0 && (
                 <div className="mb-6">
                   <h4 className="font-bold text-gray-700 text-xs mb-2">Select Size:</h4>
@@ -100,47 +122,86 @@ export default function ProductDetailModal() {
             </div>
           </div>
         ) : (
-          /* Customer Order Form (Address Step) */
+          /* Customer Order Form & Payment Step */
           <div>
-            <h3 className="text-lg font-bold text-gray-800 mb-1">Confirm Order Address</h3>
-            <p className="text-xs text-gray-500 mb-4">Please enter your delivery details to place the order.</p>
+            <h3 className="text-lg font-bold text-gray-800 mb-1">Confirm Order & Payment</h3>
+            <p className="text-xs text-gray-500 mb-4">Provide your delivery address and payment info.</p>
 
-            <form onSubmit={handleOrderSubmit} className="space-y-3">
-              <div>
-                <label className="text-xs font-bold text-gray-700">Your Full Name</label>
+            <form onSubmit={handleOrderSubmit} className="space-y-4">
+              <div className="space-y-3">
                 <input 
                   type="text" 
                   value={customerName} 
                   onChange={(e) => setCustomerName(e.target.value)} 
                   required 
-                  placeholder="e.g. Rahim Ahmed"
-                  className="w-full border p-2 text-xs rounded-lg mt-1 outline-none focus:border-[#f57224]" 
+                  placeholder="Your Full Name (আপনার নাম)"
+                  className="w-full border p-2.5 text-xs rounded-lg outline-none focus:border-[#f57224]" 
                 />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-700">Phone Number</label>
                 <input 
-                  type="text" 
+                  type="tel" 
                   value={phone} 
                   onChange={(e) => setPhone(e.target.value)} 
                   required 
-                  placeholder="017XXXXXXXX"
-                  className="w-full border p-2 text-xs rounded-lg mt-1 outline-none focus:border-[#f57224]" 
+                  placeholder="Mobile Number (মোবাইল নম্বর)"
+                  className="w-full border p-2.5 text-xs rounded-lg outline-none focus:border-[#f57224]" 
                 />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-700">Full Delivery Address (district, area, house no)</label>
                 <textarea 
                   value={address} 
                   onChange={(e) => setAddress(e.target.value)} 
                   required 
-                  rows={3}
-                  placeholder="e.g. House 12, Road 5, Mirpur 10, Dhaka"
-                  className="w-full border p-2 text-xs rounded-lg mt-1 outline-none focus:border-[#f57224]" 
+                  rows={2}
+                  placeholder="Full Delivery Address (সম্পূর্ণ ঠিকানা)"
+                  className="w-full border p-2.5 text-xs rounded-lg outline-none focus:border-[#f57224]" 
                 />
               </div>
+
+              {/* Payment Methods */}
+              <div>
+                <label className="text-xs font-bold text-gray-700 block mb-2">Select Payment Method:</label>
+                <div className="grid grid-cols-4 gap-2">
+                  <label className={`cursor-pointer p-2 rounded-lg border text-center text-xs font-bold transition ${paymentMethod === 'cod' ? 'border-[#f57224] bg-orange-50' : 'border-gray-200'}`}>
+                    <input type="radio" name="modalPayment" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="hidden" />
+                    💵 COD
+                  </label>
+                  <label className={`cursor-pointer p-2 rounded-lg border text-center text-xs font-bold transition ${paymentMethod === 'bkash' ? 'border-pink-500 bg-pink-50' : 'border-gray-200'}`}>
+                    <input type="radio" name="modalPayment" value="bkash" checked={paymentMethod === 'bkash'} onChange={() => setPaymentMethod('bkash')} className="hidden" />
+                    <span className="text-pink-600">bKash</span>
+                  </label>
+                  <label className={`cursor-pointer p-2 rounded-lg border text-center text-xs font-bold transition ${paymentMethod === 'nagad' ? 'border-orange-500 bg-orange-50' : 'border-gray-200'}`}>
+                    <input type="radio" name="modalPayment" value="nagad" checked={paymentMethod === 'nagad'} onChange={() => setPaymentMethod('nagad')} className="hidden" />
+                    <span className="text-orange-600">Nagad</span>
+                  </label>
+                  <label className={`cursor-pointer p-2 rounded-lg border text-center text-xs font-bold transition ${paymentMethod === 'rocket' ? 'border-purple-500 bg-purple-50' : 'border-gray-200'}`}>
+                    <input type="radio" name="modalPayment" value="rocket" checked={paymentMethod === 'rocket'} onChange={() => setPaymentMethod('rocket')} className="hidden" />
+                    <span className="text-purple-600">Rocket</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* If Mobile Banking Selected */}
+              {paymentMethod !== 'cod' && (
+                <div className="bg-gray-50 border border-gray-200 p-3 rounded-xl space-y-2">
+                  <div className="text-[11px] text-amber-800 bg-amber-50 p-2 rounded border border-amber-200">
+                    ⚠️ <strong>{paymentMethod.toUpperCase()} Personal Number: 01705507447</strong> এ ৳{selectedProduct.price} টাকা Send Money করুন।
+                  </div>
+                  <input 
+                    type="tel" 
+                    placeholder={`Sender ${paymentMethod.toUpperCase()} Number (e.g. 017XXXXXXXX)`} 
+                    value={senderPhone} 
+                    onChange={(e) => setSenderPhone(e.target.value)} 
+                    required 
+                    className="w-full text-xs p-2.5 border rounded-lg outline-none bg-white" 
+                  />
+                  <input 
+                    type="text" 
+                    placeholder="Transaction ID (TrxID) e.g. 9J283KLS" 
+                    value={trxId} 
+                    onChange={(e) => setTrxId(e.target.value)} 
+                    required 
+                    className="w-full text-xs p-2.5 border rounded-lg outline-none font-mono uppercase bg-white" 
+                  />
+                </div>
+              )}
 
               <div className="flex gap-3 pt-2">
                 <button 
@@ -154,7 +215,7 @@ export default function ProductDetailModal() {
                   type="submit" 
                   className="flex-1 bg-[#f57224] hover:bg-orange-600 text-white py-2.5 rounded-lg text-xs font-bold shadow-lg"
                 >
-                  Confirm Order & Send WhatsApp
+                  Confirm Order (৳{selectedProduct.price})
                 </button>
               </div>
             </form>
