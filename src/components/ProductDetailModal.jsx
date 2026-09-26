@@ -16,19 +16,21 @@ export default function ProductDetailModal() {
     e.preventDefault();
     const sizeVal = selectedSize || selectedProduct.sizes?.[0] || 'Standard';
 
-    // 1. Save to Web Admin Panel
+    // 1. Save to Web Admin Panel with Supplier Info
     const newOrder = {
       productTitle: selectedProduct.title,
       price: selectedProduct.price,
       size: sizeVal,
+      supplierName: selectedProduct.supplierName || 'DropShop', // সাপ্লায়ারের নাম যুক্ত করা হলো
+      supplierUrl: selectedProduct.supplierUrl || '',           // সাপ্লায়ারের গোপন লিঙ্ক যুক্ত করা হলো
       customerName,
       phone,
       address
     };
     addOrder(newOrder);
 
-    // 2. Format WhatsApp Message with full Address
-    const whatsappMsg = `📦 *NEW ORDER CONFIRMED!*\n\n*Product:* ${selectedProduct.title}\n*Price:* ৳${selectedProduct.price}\n*Size:* ${sizeVal}\n\n👤 *Customer Details:*\n*Name:* ${customerName}\n*Phone:* ${phone}\n*Delivery Address:* ${address}\n\nPlease deliver this product as soon as possible.`;
+    // 2. Format WhatsApp Message with full Address & Supplier Info reminder
+    const whatsappMsg = `📦 *NEW ORDER CONFIRMED!*\n\n*Product:* ${selectedProduct.title}\n*Price:* ৳${selectedProduct.price}\n*Size:* ${sizeVal}\n*Supplier:* ${selectedProduct.supplierName || 'DropShop'}\n\n👤 *Customer Details:*\n*Name:* ${customerName}\n*Phone:* ${phone}\n*Delivery Address:* ${address}\n\nPlease deliver this product as soon as possible.`;
 
     const whatsappUrl = `https://wa.me/8801705507447?text=${encodeURIComponent(whatsappMsg)}`;
     
@@ -61,21 +63,25 @@ export default function ProductDetailModal() {
               <span className="bg-orange-100 text-[#f57224] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">
                 {selectedProduct.category}
               </span>
-              <h2 className="text-lg font-bold text-gray-900 mt-2 mb-2">{selectedProduct.title}</h2>
+              <h2 className="text-lg font-bold text-gray-900 mt-2 mb-1">{selectedProduct.title}</h2>
+              <p className="text-[11px] text-orange-600 font-semibold mb-2">Supplier: {selectedProduct.supplierName || 'DropShop'}</p>
               <div className="text-2xl font-black text-[#f57224] mb-3">৳{selectedProduct.price}</div>
               <p className="text-gray-600 text-xs mb-4 leading-relaxed">{selectedProduct.description}</p>
 
-              {/* Size Option */}
-              {selectedProduct.sizes && (
+              {/* Size Option (For Shoes, T-Shirts, etc.) */}
+              {selectedProduct.sizes && selectedProduct.sizes.length > 0 && (
                 <div className="mb-6">
                   <h4 className="font-bold text-gray-700 text-xs mb-2">Select Size:</h4>
                   <div className="flex flex-wrap gap-2">
                     {selectedProduct.sizes.map((sz) => (
                       <button
                         key={sz}
+                        type="button"
                         onClick={() => setSelectedSize(sz)}
                         className={`px-3 py-1 border rounded-md text-xs font-bold transition ${
-                          selectedSize === sz ? 'bg-[#f57224] text-white border-[#f57224]' : 'bg-gray-50 text-gray-700'
+                          (selectedSize === sz || (!selectedSize && selectedProduct.sizes[0] === sz))
+                            ? 'bg-[#f57224] text-white border-[#f57224]'
+                            : 'bg-gray-50 text-gray-700 hover:border-gray-400'
                         }`}
                       >
                         {sz}
