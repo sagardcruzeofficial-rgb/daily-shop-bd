@@ -9,8 +9,10 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Footer from './components/Footer';
 import { StoreContext } from './context/StoreContext';
+import { auth } from './firebase'; // ফায়ারবেস অথ ইমপোর্ট করা হলো
+import { sendPasswordResetEmail } from 'firebase/auth';
 
-// Admin Username & Password Protected Wrapper Component with Logout
+// Admin Username & Password Protected Wrapper Component with Logout & Forgot Password
 const AdminAuthWrapper = ({ children }) => {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(
     sessionStorage.getItem('adminAuth') === 'true'
@@ -18,10 +20,12 @@ const AdminAuthWrapper = ({ children }) => {
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [error, setError] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [isForgotMode, setIsForgotMode] = useState(false);
+  const [message, setMessage] = useState('');
 
-  // আপনার পছন্দমতো ইউজারনেম এবং পাসওয়ার্ড এখানে সেট করতে পারেন
-  const ADMIN_USER = "admin";
-  const ADMIN_PASS = "DailyShopBDAdmin123";
+  const ADMIN_USER = "Sagar Dcruze";
+  const ADMIN_PASS = "sAgar2002@#";
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -32,6 +36,23 @@ const AdminAuthWrapper = ({ children }) => {
     } else {
       setError(true);
       setPasswordInput('');
+    }
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!resetEmail) {
+      setMessage("দয়া করে আপনার অ্যাডমিন ইমেইলটি লিখুন!");
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, resetEmail);
+      setMessage("পাসওয়ার্ড রিসেট লিংক আপনার জিমেইলে পাঠানো হয়েছে! ইনবক্স বা স্প্যাম ফোল্ডার চেক করুন।");
+      setError(false);
+    } catch (err) {
+      console.error(err);
+      setMessage("ইমেইলটি ফায়ারবেস সিস্টেমে পাওয়া যায়নি বা ভুল হয়েছে!");
+      setError(true);
     }
   };
 
@@ -47,46 +68,92 @@ const AdminAuthWrapper = ({ children }) => {
       <div className="flex items-center justify-center min-h-screen bg-gray-100 font-sans">
         <div className="p-8 bg-white rounded-2xl shadow-md w-96 border border-gray-200">
           <h2 className="mb-6 text-xl font-black text-center text-gray-800 border-b pb-3">Admin Panel Security</h2>
-          <form onSubmit={handleLogin}>
-            <div className="mb-4">
-              <label className="block mb-2 text-xs font-bold text-gray-600 uppercase tracking-wider">Admin Username</label>
-              <input
-                type="text"
-                value={usernameInput}
-                onChange={(e) => setUsernameInput(e.target.value)}
-                placeholder="Username..."
-                className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#f57224] text-sm"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block mb-2 text-xs font-bold text-gray-600 uppercase tracking-wider">Admin Password</label>
-              <input
-                type="password"
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                placeholder="Password..."
-                className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#f57224] text-sm"
-                required
-              />
-            </div>
-            {error && <p className="mb-4 text-xs font-bold text-red-500">ভুল ইউজারনেম অথবা পাসওয়ার্ড!</p>}
-            <button
-              type="submit"
-              className="w-full py-2.5 font-bold text-white bg-[#f57224] rounded-xl hover:bg-orange-600 transition duration-200 text-sm shadow-sm"
-            >
-              Login to Admin
-            </button>
-          </form>
+          
+          {!isForgotMode ? (
+            <form onSubmit={handleLogin}>
+              <div className="mb-4">
+                <label className="block mb-2 text-xs font-bold text-gray-600 uppercase tracking-wider">Admin Username</label>
+                <input
+                  type="text"
+                  value={usernameInput}
+                  onChange={(e) => setUsernameInput(e.target.value)}
+                  placeholder="Username..."
+                  className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#f57224] text-sm"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block mb-2 text-xs font-bold text-gray-600 uppercase tracking-wider">Admin Password</label>
+                <input
+                  type="password"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  placeholder="Password..."
+                  className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#f57224] text-sm"
+                  required
+                />
+              </div>
+              {error && <p className="mb-4 text-xs font-bold text-red-500">ভুল ইউজারনেম অথবা পাসওয়ার্ড!</p>}
+              <button
+                type="submit"
+                className="w-full py-2.5 font-bold text-white bg-[#f57224] rounded-xl hover:bg-orange-600 transition duration-200 text-sm shadow-sm mb-3"
+              >
+                Login to Admin
+              </button>
+              
+              <div className="text-center mt-2">
+                <button
+                  type="button"
+                  onClick={() => { setIsForgotMode(true); setMessage(''); }}
+                  className="text-xs text-[#f57224] font-bold hover:underline cursor-pointer"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleForgotPassword}>
+              <div className="mb-4">
+                <label className="block mb-2 text-xs font-bold text-gray-600 uppercase tracking-wider">Enter Admin Gmail</label>
+                <input
+                  type="email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  placeholder="admin@gmail.com..."
+                  className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#f57224] text-sm"
+                  required
+                />
+              </div>
+              {message && (
+                <p className={`mb-4 text-xs font-bold ${error ? 'text-red-500' : 'text-green-600'}`}>
+                  {message}
+                </p>
+              )}
+              <button
+                type="submit"
+                className="w-full py-2.5 font-bold text-white bg-[#f57224] rounded-xl hover:bg-orange-600 transition duration-200 text-sm shadow-sm mb-3"
+              >
+                Send Reset Link
+              </button>
+              
+              <div className="text-center mt-2">
+                <button
+                  type="button"
+                  onClick={() => { setIsForgotMode(false); setMessage(''); }}
+                  className="text-xs text-gray-600 font-bold hover:underline cursor-pointer"
+                >
+                  ← Back to Login
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     );
   }
 
-  // পাসওয়ার্ড সঠিক হলে অ্যাডমিন প্যানেল দেখাবে এবং উপরে একটি সিকিউর লগআউট বাটন থাকবে
   return (
     <div className="min-h-screen bg-[#f8fafc]">
-      {/* Admin Top Secure Bar with Logout Button */}
       <div className="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center shadow-sm">
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
@@ -100,7 +167,6 @@ const AdminAuthWrapper = ({ children }) => {
         </button>
       </div>
 
-      {/* Main Admin View Content */}
       {children}
     </div>
   );
@@ -143,11 +209,8 @@ export default function App() {
     );
   }
 
-  // Active Category details for Sub-Category filter
   const currentCatObj = categoryData ? categoryData.find(c => c.name === selectedCategory) : null;
   const currentSubCategories = currentCatObj ? currentCatObj.subCategories || [] : [];
-
-  // Determine list of products to display
   const displayProducts = (filteredProducts && filteredProducts.length > 0) ? filteredProducts : products;
 
   return (
@@ -165,13 +228,10 @@ export default function App() {
           <div className="max-w-[1300px] mx-auto px-4 py-6">
             <div className="flex flex-col lg:flex-row gap-6">
               
-              {/* Category Sidebar */}
               <CategorySidebar />
 
-              {/* Main Content Area */}
               <div className="flex-1 space-y-6">
                 
-                {/* Sub-Category Filter Buttons (When a Category is Selected) */}
                 {selectedCategory && selectedCategory !== 'All' && currentSubCategories.length > 0 && (
                   <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 flex flex-wrap items-center gap-2">
                     <span className="text-xs font-bold text-gray-500 mr-2">Sub-categories:</span>
@@ -201,7 +261,6 @@ export default function App() {
                   </div>
                 )}
 
-                {/* Filtered Search / Category View */}
                 {selectedCategory !== 'All' || selectedSubCategory !== 'All' ? (
                   <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
                     <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
@@ -226,7 +285,6 @@ export default function App() {
                     )}
                   </div>
                 ) : (
-                  /* Section-wise Category View (Default View) */
                   categories.map((cat) => {
                     const categoryProducts = displayProducts.filter(p => p.category === cat);
                     if (categoryProducts.length === 0) return null;
