@@ -33,16 +33,17 @@ export default function CheckoutPage() {
       return;
     }
 
-    const itemDetails = checkoutItems.map((item, idx) => `- ${item.title} (Size: ${selectedSizes[idx]}): ৳${item.price}`).join('\n');
+    // হোয়াটসঅ্যাপ মেসেজে সাইজ সহ বিস্তারিত তৈরি করা
+    const itemDetails = checkoutItems.map((item, idx) => `- ${item.title} (Size: *${selectedSizes[idx]}*): ৳${item.price}`).join('\n');
 
-    // Admin Panel Order Push with Supplier Info
+    // Admin Panel Order Push with Size and Supplier Info
     checkoutItems.forEach((item, idx) => {
       addOrder({
         productTitle: item.title,
         price: item.price,
-        size: selectedSizes[idx],
-        supplierName: item.supplierName || 'DropShop', // সাপ্লায়ারের নাম যুক্ত করা হলো
-        supplierUrl: item.supplierUrl || '',           // সাপ্লায়ারের লিঙ্ক যুক্ত করা হলো
+        size: selectedSizes[idx], // কাস্টমারের সিলেক্ট করা সাইজ এডমিন প্যানেলে সেভ হবে
+        supplierName: item.supplierName || 'DropShop',
+        supplierUrl: item.supplierUrl || '',
         customerName,
         phone,
         address,
