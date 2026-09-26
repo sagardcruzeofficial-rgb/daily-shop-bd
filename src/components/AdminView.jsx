@@ -16,6 +16,7 @@ export default function AdminView() {
   const [selectedSubCat, setSelectedSubCat] = useState('');
   const [description, setDescription] = useState('');
   const [supplierUrl, setSupplierUrl] = useState('');
+  const [supplierName, setSupplierName] = useState('DropShop'); // নতুন সাপ্লায়ার সিলেক্টর স্টেট
   const [sizesInput, setSizesInput] = useState('M, L, XL, XXL');
   const [isFetching, setIsFetching] = useState(false);
 
@@ -54,16 +55,16 @@ export default function AdminView() {
       if (data.success) {
         if (data.sizes && data.sizes.length > 0) {
           setSizesInput(data.sizes.join(', '));
-          alert(`সফলভাবে সাইজ পাওয়া গেছে: ${data.sizes.join(', ')}`);
+          alert(`সফলভাবে সাইজ পাওয়া গেছে: ${data.sizes.join(', ')}`);
         } else {
-          alert('কোনো সাইজ পাওয়া যায়নি বা প্রোডাক্ট আউট অফ স্টক!');
+          alert('কোনো সাইজ পাওয়া যায়নি বা প্রোডাক্ট আউট অফ স্টক!');
         }
       } else {
-        alert('স্টক ডাটা আনা সম্ভব হয়নি। লিঙ্কটি সঠিক কি না তা দেখুন।');
+        alert('স্টক ডাটা আনা সম্ভব হয়নি। লিঙ্কটি সঠিক কি না তা দেখুন।');
       }
     } catch (err) {
       console.error(err);
-      alert('সাপ্লায়ার সাইটে কানেক্ট করা যায়নি!');
+      alert('সাপ্লায়ার সাইটে কানেক্ট করা যায়নি!');
     } finally {
       setIsFetching(false);
     }
@@ -85,11 +86,12 @@ export default function AdminView() {
       subCategory: selectedSubCat,
       description, 
       sizes: parsedSizes,
-      supplierUrl: supplierUrl.trim() // Secret supplier link (Hidden from visitors)
+      supplierName: supplierName, // কোন সাইটের প্রোডাক্ট তা সেভ হবে
+      supplierUrl: supplierUrl.trim() // Secret supplier link
     });
 
     setTitle(''); setPrice(''); setImage(''); setDescription(''); setSupplierUrl(''); setSizesInput('M, L, XL, XXL');
-    alert('Product Published Successfully!');
+    alert('Product Published Successfully with Supplier Tracker!');
   };
 
   const handleAddCategorySubmit = (e) => {
@@ -127,7 +129,7 @@ export default function AdminView() {
       <div className="bg-gray-900 text-white p-6 rounded-2xl mb-8 flex flex-col md:flex-row justify-between items-center shadow-lg gap-4">
         <div>
           <h2 className="text-2xl font-black text-orange-500">DailyShop BD - Master Admin Panel</h2>
-          <p className="text-xs text-gray-400">Manage products, sub-categories, supplier links, orders & footer links.</p>
+          <p className="text-xs text-gray-400">Manage products, sub-categories, multi-suppliers, orders & footer links.</p>
         </div>
         
         <div className="flex items-center gap-3">
@@ -145,7 +147,7 @@ export default function AdminView() {
         </div>
       </div>
 
-      {/* 1. Customer Orders */}
+      {/* 1. Customer Orders with Supplier Tracker */}
       <div className="bg-white p-6 rounded-2xl shadow border border-gray-200 mb-8">
         <h3 className="font-bold text-gray-800 text-base mb-4 border-b pb-2">📦 Customer Website Orders ({orders ? orders.length : 0})</h3>
         {!orders || orders.length === 0 ? (
@@ -156,7 +158,7 @@ export default function AdminView() {
               <thead>
                 <tr className="bg-gray-100 text-gray-700">
                   <th className="p-2 border">Date</th>
-                  <th className="p-2 border">Product</th>
+                  <th className="p-2 border">Product & Supplier Info</th>
                   <th className="p-2 border">Price</th>
                   <th className="p-2 border">Customer</th>
                   <th className="p-2 border">Phone</th>
@@ -165,19 +167,40 @@ export default function AdminView() {
                 </tr>
               </thead>
               <tbody>
-                {orders.map((ord) => (
-                  <tr key={ord.id} className="border-b hover:bg-gray-50">
-                    <td className="p-2 border text-gray-500">{ord.date}</td>
-                    <td className="p-2 border font-bold text-gray-800">{ord.productTitle} ({ord.size})</td>
-                    <td className="p-2 border font-bold text-orange-600">৳{ord.price}</td>
-                    <td className="p-2 border font-semibold">{ord.customerName}</td>
-                    <td className="p-2 border text-blue-600">{ord.phone}</td>
-                    <td className="p-2 border max-w-xs">{ord.address}</td>
-                    <td className="p-2 border">
-                      <button onClick={() => deleteOrder(ord.id)} className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-[10px] transition">Clear</button>
-                    </td>
-                  </tr>
-                ))}
+                {orders.map((ord) => {
+                  // অর্ডারের সাথে যুক্ত প্রোডাক্ট খুঁজে বের করা যাতে সাপ্লায়ার ইনফো পাওয়া যায়
+                  const matchedProduct = products.find(p => p.title === ord.productTitle);
+                  const supName = ord.supplierName || (matchedProduct ? matchedProduct.supplierName : 'DropShop');
+                  const supUrl = ord.supplierUrl || (matchedProduct ? matchedProduct.supplierUrl : '');
+
+                  return (
+                    <tr key={ord.id} className="border-b hover:bg-gray-50">
+                      <td className="p-2 border text-gray-500">{ord.date}</td>
+                      <td className="p-2 border">
+                        <p className="font-bold text-gray-800">{ord.productTitle} ({ord.size})</p>
+                        <div className="mt-1 bg-orange-50 p-1.5 rounded border border-orange-200 inline-block">
+                          <span className="text-[10px] font-bold text-orange-800">📦 Supplier: {supName}</span>
+                          {supUrl ? (
+                            <div>
+                              <a href={supUrl} target="_blank" rel="noreferrer" className="text-[10px] text-blue-600 underline font-semibold hover:text-blue-800 block">
+                                🔗 Order from Supplier
+                              </a>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] text-gray-400 block italic">No link saved</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-2 border font-bold text-orange-600">৳{ord.price}</td>
+                      <td className="p-2 border font-semibold">{ord.customerName}</td>
+                      <td className="p-2 border text-blue-600">{ord.phone}</td>
+                      <td className="p-2 border max-w-xs">{ord.address}</td>
+                      <td className="p-2 border">
+                        <button onClick={() => deleteOrder(ord.id)} className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-[10px] transition">Clear</button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -212,9 +235,22 @@ export default function AdminView() {
               ))}
             </select>
 
-            {/* Hidden Supplier URL Input & Auto Fetch Button */}
+            {/* Supplier Selection & Hidden Link */}
             <div className="bg-orange-50 p-2.5 rounded-xl border border-orange-200 space-y-2">
-              <label className="block text-[10px] font-bold text-orange-800 uppercase">🔒 Hidden Supplier Link (Dropship URL):</label>
+              <label className="block text-[10px] font-bold text-orange-800 uppercase">🏢 Select Supplier Source:</label>
+              <select 
+                value={supplierName} 
+                onChange={(e) => setSupplierName(e.target.value)}
+                className="w-full border border-orange-300 p-1.5 text-xs rounded bg-white font-semibold text-gray-700"
+              >
+                <option value="DropShop">DropShop (BDSHOP)</option>
+                <option value="Dropupseller">Dropupseller</option>
+                <option value="DropshippingBD">DropshippingBD</option>
+                <option value="Local Wholesale Market">Local Wholesale Market</option>
+                <option value="Other Supplier">Other Supplier</option>
+              </select>
+
+              <label className="block text-[10px] font-bold text-orange-800 uppercase mt-1">🔒 Hidden Supplier Link:</label>
               <input 
                 type="url" 
                 placeholder="https://supplier-site.com/product-link" 
@@ -242,7 +278,7 @@ export default function AdminView() {
               className="w-full border p-2 text-xs rounded bg-emerald-50/40 font-semibold text-emerald-800 border-emerald-300" 
             />
 
-            <textarea placeholder="Description (Search tags will automatically read this)" value={description} onChange={(e) => setDescription(e.target.value)} required className="w-full border p-2 text-xs rounded" rows={3}></textarea>
+            <textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} required className="w-full border p-2 text-xs rounded" rows={3}></textarea>
             <button className="w-full bg-[#f57224] text-white font-bold py-2 rounded text-xs hover:bg-orange-600 transition shadow">Publish Product</button>
           </form>
         </div>
@@ -328,6 +364,7 @@ export default function AdminView() {
                   <button onClick={() => deleteProduct(p.id)} className="bg-red-500 hover:bg-red-600 text-white px-2 py-0.5 text-[10px] rounded transition">Delete</button>
                 </div>
                 <div className="text-[10px] text-gray-500 flex flex-col gap-0.5">
+                  <span><strong>Supplier:</strong> <span className="text-orange-600 font-bold">{p.supplierName || 'DropShop'}</span></span>
                   <span><strong>Sizes:</strong> {Array.isArray(p.sizes) ? p.sizes.join(', ') : 'Standard'}</span>
                   {p.supplierUrl ? (
                     <a href={p.supplierUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline truncate hover:text-blue-800">
