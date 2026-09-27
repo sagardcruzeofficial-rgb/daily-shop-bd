@@ -35,65 +35,65 @@ export default function Home() {
   }, [recentProducts.length]);
 
   return (
-    <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '16px' }} className="font-sans bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-300">
+    <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '16px' }} className="font-sans bg-gray-100 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-300">
       
       {/* মেইন লেআউট Container */}
       <div style={{ display: 'flex', flexDirection: 'row', gap: '24px', alignItems: 'flex-start' }} className="flex-col md:flex-row">
         
-        {/* ==================== ১. বাম পাশের ক্যাটাগরি সাইডবার ==================== */}
+        {/* ==================== ১. বাম পাশের ক্যাটাগরি সাইডবার (3D & Premium Border) ==================== */}
         <div style={{ width: '250px', flexShrink: 0 }} className="w-full md:w-64">
-          <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm sticky top-4 transition-colors">
-            <h2 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
+          <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl border-2 border-gray-200 dark:border-gray-800 shadow-[0_8px_20px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.4)] sticky top-4 transition-all duration-300">
+            <h2 className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 pb-1 border-b border-gray-100 dark:border-gray-800">
               Categories
             </h2>
 
-            <div className="flex flex-col gap-1">
-              {/* All Categories */}
+            <div className="flex flex-col gap-1.5">
+              {/* All Categories Button */}
               <button
                 type="button"
                 onClick={() => {
                   setSelectedCategory('All');
                   setSelectedSubCategory('All');
                 }}
-                className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition flex items-center justify-between ${
+                className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-between border ${
                   selectedCategory === 'All'
-                    ? 'bg-[#f57224] text-white'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-gray-800 hover:text-[#f57224]'
+                    ? 'bg-[#f57224] text-white border-[#e0621b] shadow-[0_4px_12px_rgba(245,114,36,0.35)] translate-y-[-1px]'
+                    : 'bg-gray-50 dark:bg-gray-850 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-750 hover:border-[#f57224] dark:hover:border-[#f57224] hover:bg-orange-50/50 dark:hover:bg-gray-800'
                 }`}
               >
                 <span>All Categories</span>
-                <span>›</span>
+                <span className="text-sm font-black">›</span>
               </button>
 
               {/* Dynamic Categories */}
               {categoryData.map((cat) => (
-                <div key={cat.name} className="flex flex-col">
+                <div key={cat.name} className="flex flex-col gap-1">
                   <button
                     type="button"
                     onClick={() => {
                       setSelectedCategory(cat.name);
                       setSelectedSubCategory('All');
                     }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition flex items-center justify-between ${
+                    className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-between border ${
                       selectedCategory === cat.name
-                        ? 'bg-[#f57224] text-white'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-gray-800 hover:text-[#f57224]'
+                        ? 'bg-[#f57224] text-white border-[#e0621b] shadow-[0_4px_12px_rgba(245,114,36,0.35)] translate-y-[-1px]'
+                        : 'bg-gray-50 dark:bg-gray-850 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-750 hover:border-[#f57224] dark:hover:border-[#f57224] hover:bg-orange-50/50 dark:hover:bg-gray-800'
                     }`}
                   >
                     <span>{cat.name}</span>
-                    <span>›</span>
+                    <span className="text-sm font-black">›</span>
                   </button>
 
-                  {/* Subcategories */}
+                  {/* Subcategories (3D Indented Box) */}
                   {selectedCategory === cat.name && currentSubCategories.length > 0 && (
-                    <div className="ml-3 my-1 pl-2 border-l-2 border-orange-300 dark:border-orange-600 flex flex-col gap-1">
+                    <div className="ml-3 my-1 pl-2.5 border-l-2 border-[#f57224] bg-gray-50/80 dark:bg-gray-950/50 p-2 rounded-r-xl border-y border-r border-gray-200/60 dark:border-gray-800 flex flex-col gap-1.5 shadow-inner">
                       <button
                         type="button"
                         onClick={() => setSelectedSubCategory('All')}
-                        className={`text-left text-[11px] font-semibold py-1 px-2 rounded ${
+                        className={`text-left text-[11px] font-bold py-1.5 px-2.5 rounded-lg border transition-all ${
                           selectedSubCategory === 'All'
-                            ? 'text-[#f57224] font-bold'
-                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                            ? 'bg-white dark:bg-gray-800 text-[#f57224] border-gray-200 dark:border-gray-700 shadow-sm'
+                            : 'bg-transparent text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/50 dark:hover:bg-gray-900'
                         }`}
                       >
                         • All {cat.name}
@@ -103,10 +103,10 @@ export default function Home() {
                           key={sub}
                           type="button"
                           onClick={() => setSelectedSubCategory(sub)}
-                          className={`text-left text-[11px] font-semibold py-1 px-2 rounded ${
+                          className={`text-left text-[11px] font-bold py-1.5 px-2.5 rounded-lg border transition-all ${
                             selectedSubCategory === sub
-                              ? 'text-[#f57224] font-bold'
-                              : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                              ? 'bg-white dark:bg-gray-800 text-[#f57224] border-gray-200 dark:border-gray-700 shadow-sm'
+                              : 'bg-transparent text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/50 dark:hover:bg-gray-900'
                           }`}
                         >
                           • {sub}
@@ -123,22 +123,22 @@ export default function Home() {
         {/* ==================== ২. ডান পাশের ব্যানার ও প্রোডাক্ট গ্রিড ==================== */}
         <div style={{ flex: 1, width: '100%' }} className="space-y-6">
           
-          {/* ব্যানার ও স্লাইডার ফ্রেম */}
+          {/* ব্যানার ও স্লাইডার ফ্রেম (3D Layered Look) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             
             {/* মেইন সুপারশপ ব্যানার */}
-            <div className="lg:col-span-2 relative rounded-2xl overflow-hidden shadow-sm border border-gray-200 dark:border-gray-800 h-52 bg-gray-900 group">
+            <div className="lg:col-span-2 relative rounded-2xl overflow-hidden shadow-[0_10px_25px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.5)] border-2 border-gray-200 dark:border-gray-800 h-52 bg-gray-900 group">
               <img
                 src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=800&q=80"
                 alt="Supershop Banner"
                 className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition duration-500"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-4 text-white">
-                <span className="bg-[#f57224] text-[10px] font-bold uppercase px-2 py-0.5 rounded-full w-max mb-1">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex flex-col justify-end p-5 text-white">
+                <span className="bg-[#f57224] text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md w-max mb-1.5 shadow-md border border-orange-400">
                   Super Deal
                 </span>
-                <h3 className="font-extrabold text-lg leading-tight">Daily Supershop Offers</h3>
-                <p className="text-xs text-gray-200 mt-0.5">Get up to 40% OFF on daily essentials</p>
+                <h3 className="font-black text-xl leading-tight drop-shadow-md">Daily Supershop Offers</h3>
+                <p className="text-xs text-gray-200 mt-0.5 font-medium">Get up to 40% OFF on daily essentials</p>
               </div>
             </div>
 
@@ -148,7 +148,7 @@ export default function Home() {
               {/* স্লাইডার ফ্রেম */}
               <div
                 onClick={() => setSelectedProduct && recentProducts[currentSlide] && setSelectedProduct(recentProducts[currentSlide])}
-                className="relative bg-black rounded-xl overflow-hidden shadow-sm h-24 border border-gray-200 dark:border-gray-800 cursor-pointer group"
+                className="relative bg-black rounded-xl overflow-hidden shadow-[0_6px_15px_rgba(0,0,0,0.1)] dark:shadow-[0_6px_15px_rgba(0,0,0,0.4)] h-24 border-2 border-gray-200 dark:border-gray-800 cursor-pointer group hover:border-[#f57224] transition-all"
               >
                 {recentProducts.length > 0 ? (
                   <>
@@ -157,12 +157,12 @@ export default function Home() {
                       alt="Recent Product"
                       className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition duration-500"
                     />
-                    <div className="absolute top-1.5 left-1.5 bg-black/70 text-white text-[9px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm">
+                    <div className="absolute top-1.5 left-1.5 bg-black/80 text-white text-[9px] font-black px-2 py-0.5 rounded-md backdrop-blur-md border border-gray-700">
                       🆕 ({currentSlide + 1}/{recentProducts.length})
                     </div>
-                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 to-transparent p-1.5">
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-2">
                       <p className="text-white text-[10px] font-bold truncate">{recentProducts[currentSlide]?.title}</p>
-                      <p className="text-[#f57224] text-[10px] font-black">৳{recentProducts[currentSlide]?.price}</p>
+                      <p className="text-[#f57224] text-[11px] font-black">৳{recentProducts[currentSlide]?.price}</p>
                     </div>
                   </>
                 ) : (
@@ -173,15 +173,15 @@ export default function Home() {
               </div>
 
               {/* প্রোমো ব্যানার */}
-              <div className="relative rounded-xl overflow-hidden shadow-sm h-24 border border-gray-200 dark:border-gray-800 group bg-gray-100 dark:bg-gray-800">
+              <div className="relative rounded-xl overflow-hidden shadow-[0_6px_15px_rgba(0,0,0,0.1)] dark:shadow-[0_6px_15px_rgba(0,0,0,0.4)] h-24 border-2 border-gray-200 dark:border-gray-800 group bg-gray-100 dark:bg-gray-855 hover:border-[#f57224] transition-all">
                 <img
                   src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=400&q=80"
                   alt="Promo Banner"
                   className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                 />
-                <div className="absolute inset-0 bg-black/40 flex flex-col justify-end p-2 text-white">
-                  <p className="text-[10px] font-bold">Gadget Zone</p>
-                  <p className="text-[8px] text-gray-200">Exclusive Collection</p>
+                <div className="absolute inset-0 bg-black/50 flex flex-col justify-end p-2.5 text-white">
+                  <p className="text-[11px] font-black drop-shadow">Gadget Zone</p>
+                  <p className="text-[9px] text-gray-200 font-medium">Exclusive Collection</p>
                 </div>
               </div>
 
@@ -189,17 +189,18 @@ export default function Home() {
 
           </div>
 
-          {/* প্রোডাক্ট গ্রিড */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">
+          {/* প্রোডাক্ট গ্রিড সেকশন */}
+          <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border-2 border-gray-200 dark:border-gray-800 shadow-[0_8px_20px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.3)]">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-gray-100 dark:border-gray-800">
+              <h3 className="text-sm font-black text-gray-800 dark:text-gray-100 uppercase tracking-wider flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#f57224]"></span>
                 {selectedCategory} {selectedSubCategory !== 'All' ? ` › ${selectedSubCategory}` : ''}
               </h3>
-              <span className="text-xs text-gray-400 dark:text-gray-500 font-semibold">{filteredProducts.length} Items</span>
+              <span className="text-xs text-white bg-[#f57224] px-2.5 py-1 rounded-lg font-black shadow-sm">{filteredProducts.length} Items</span>
             </div>
 
             {filteredProducts.length === 0 ? (
-              <div className="text-center py-16 bg-white dark:bg-gray-900 rounded-2xl border border-dashed border-gray-300 dark:border-gray-800 transition-colors">
+              <div className="text-center py-16 bg-gray-50 dark:bg-gray-950 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-800 transition-colors">
                 <span className="text-4xl">🛍️</span>
                 <h4 className="text-base font-bold text-gray-700 dark:text-gray-300 mt-2">No Products Found!</h4>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Try selecting a different category from the left menu.</p>
