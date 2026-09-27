@@ -9,7 +9,6 @@ export default function Navbar() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // পেজ লোড হওয়ার সময় লোকালস্টোরেজ থেকে থিম চেক করা
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
@@ -21,7 +20,6 @@ export default function Navbar() {
     }
   }, []);
 
-  // ডার্ক মোড টগল ফাংশন
   const toggleDarkMode = () => {
     const htmlElement = document.documentElement;
     if (htmlElement.classList.contains('dark')) {
@@ -52,30 +50,30 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="bg-white dark:bg-gray-900 sticky top-0 z-40 shadow-sm border-b border-gray-100 dark:border-gray-800 font-sans transition-colors duration-300">
+      <header className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md sticky top-0 z-40 border-b-2 border-gray-200 dark:border-gray-800 shadow-[0_4px_20px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] font-sans transition-colors duration-300">
         {/* Top Banner Bar */}
-        <div className="bg-[#111827] text-gray-300 text-[11px] py-1.5 px-6 flex justify-between items-center">
+        <div className="bg-[#111827] text-gray-300 text-[11px] py-1.5 px-6 flex justify-between items-center border-b border-gray-800">
           <marquee>
-          <span>🔥 Welcome to DailyShopBD - Official Online Store</span>
+            <span>🔥 Welcome to DailyShopBD - Official Online Store &bull; Premium Quality Guaranteed</span>
           </marquee>
-          <div className="flex gap-4 text-gray-400">
-            <button onClick={() => setActiveTab('About Us')} className="hover:text-white">Help Center</button>
-            <button onClick={() => setActiveTab('Contact Us')} className="hover:text-white">Contact</button>
+          <div className="flex gap-4 text-gray-400 font-semibold">
+            <button onClick={() => setActiveTab('About Us')} className="hover:text-white transition">Help Center</button>
+            <button onClick={() => setActiveTab('Contact Us')} className="hover:text-white transition">Contact</button>
           </div>
         </div>
 
         {/* Main Header */}
         <div className="max-w-[1300px] mx-auto px-6 py-3 flex items-center justify-between gap-6">
           
-          {/* Top Left: Logo & Name (DailyShopBD) */}
+          {/* Logo */}
           <div 
             onClick={() => {
               setActiveTab('Home');
               setSearchQuery('');
             }} 
-            className="cursor-pointer flex items-center gap-2.5 select-none"
+            className="cursor-pointer flex items-center gap-2.5 select-none group"
           >
-            <div className="w-10 h-10 bg-[#f57224] rounded-xl flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-orange-500/30">
+            <div className="w-10 h-10 bg-[#f57224] rounded-xl flex items-center justify-center text-white font-black text-2xl border-2 border-orange-400 shadow-[0_4px_12px_rgba(245,114,36,0.4)] group-hover:scale-105 transition-transform">
               D
             </div>
             <span className="text-2xl font-black text-[#f57224] tracking-tight">
@@ -83,42 +81,42 @@ export default function Navbar() {
             </span>
           </div>
 
-          {/* Center: Real-time Search Bar */}
-          <div className="flex-1 max-w-xl hidden md:flex items-center rounded-lg overflow-hidden border-2 border-[#f57224] bg-gray-50 dark:bg-gray-800 focus-within:bg-white dark:focus-within:bg-gray-900 transition-colors">
+          {/* Search Bar */}
+          <div className="flex-1 max-w-xl hidden md:flex items-center rounded-xl overflow-hidden border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus-within:border-[#f57224] dark:focus-within:border-[#f57224] shadow-[inset_0_2px_4px_rgba(0,0,0,0.04)] transition-all">
             <input 
               type="text" 
               placeholder="Search products in DailyShopBD..." 
               value={searchQuery || ''}
               onChange={handleSearchChange}
-              className="w-full px-4 py-2 text-gray-800 dark:text-gray-100 text-xs outline-none bg-transparent"
+              className="w-full px-4 py-2 text-gray-800 dark:text-gray-100 text-xs outline-none bg-transparent font-medium"
             />
             <button 
               onClick={() => setActiveTab('Home')}
-              className="bg-[#f57224] hover:bg-orange-600 px-5 py-2 text-white font-bold transition"
+              className="bg-[#f57224] hover:bg-orange-600 px-5 py-2 text-white font-bold transition border-l border-orange-600 shadow-sm"
             >
               🔍
             </button>
           </div>
 
-          {/* Top Right: Navigation, Cart, Auth & Dark Mode Toggle */}
-          <div className="flex items-center gap-4 text-xs font-semibold text-gray-700 dark:text-gray-300">
+          {/* Right Actions */}
+          <div className="flex items-center gap-3 text-xs font-semibold text-gray-700 dark:text-gray-300">
             <nav className="hidden lg:flex gap-4 items-center">
-              <button onClick={() => setActiveTab('Home')} className={`hover:text-[#f57224] ${activeTab === 'Home' && 'text-[#f57224] font-bold'}`}>Home</button>
-              <button onClick={() => setActiveTab('About Us')} className={`hover:text-[#f57224] ${activeTab === 'About Us' && 'text-[#f57224] font-bold'}`}>About Us</button>
-              <button onClick={() => setActiveTab('Privacy Policy')} className={`hover:text-[#f57224] ${activeTab === 'Privacy Policy' && 'text-[#f57224] font-bold'}`}>Privacy Policy</button>
-              <button onClick={() => setActiveTab('Contact Us')} className={`hover:text-[#f57224] ${activeTab === 'Contact Us' && 'text-[#f57224] font-bold'}`}>Contact Us</button>
+              <button onClick={() => setActiveTab('Home')} className={`hover:text-[#f57224] transition ${activeTab === 'Home' && 'text-[#f57224] font-black'}`}>Home</button>
+              <button onClick={() => setActiveTab('About Us')} className={`hover:text-[#f57224] transition ${activeTab === 'About Us' && 'text-[#f57224] font-black'}`}>About Us</button>
+              <button onClick={() => setActiveTab('Privacy Policy')} className={`hover:text-[#f57224] transition ${activeTab === 'Privacy Policy' && 'text-[#f57224] font-black'}`}>Privacy Policy</button>
+              <button onClick={() => setActiveTab('Contact Us')} className={`hover:text-[#f57224] transition ${activeTab === 'Contact Us' && 'text-[#f57224] font-black'}`}>Contact Us</button>
             </nav>
 
-            {/* Auth Section with Loading Guard */}
+            {/* Auth Buttons */}
             {!authLoading && (
               currentUser ? (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <span className="text-gray-800 dark:text-gray-200 font-bold hidden xl:inline">
                     👤 {currentUser.displayName || currentUser.email}
                   </span>
                   <button
                     onClick={handleLogout}
-                    className="bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition"
+                    className="bg-red-500 text-white px-3 py-1.5 rounded-xl border-2 border-red-600 hover:bg-red-600 transition shadow-[0_3px_10px_rgba(239,68,68,0.2)] font-bold active:translate-y-[1px]"
                   >
                     Logout
                   </button>
@@ -127,13 +125,13 @@ export default function Navbar() {
                 <div className="flex items-center gap-2">
                   <button 
                     onClick={() => setActiveTab('Login')} 
-                    className="text-[#f57224] border border-[#f57224] px-3 py-1.5 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-800 transition"
+                    className="text-[#f57224] border-2 border-[#f57224] px-3 py-1.5 rounded-xl hover:bg-orange-50 dark:hover:bg-gray-800 transition font-bold shadow-[0_2px_8px_rgba(245,114,36,0.1)] active:translate-y-[1px]"
                   >
                     Login
                   </button>
                   <button 
                     onClick={() => setActiveTab('Register')} 
-                    className="bg-[#f57224] text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 transition"
+                    className="bg-[#f57224] text-white px-3 py-1.5 rounded-xl border-2 border-orange-600 hover:bg-orange-600 transition font-bold shadow-[0_3px_10px_rgba(245,114,36,0.3)] active:translate-y-[1px]"
                   >
                     Register
                   </button>
@@ -141,22 +139,22 @@ export default function Navbar() {
               )
             )}
 
-            {/* Cart Widget Click opens Slide-over Modal */}
+            {/* Cart Button */}
             <div 
               onClick={() => setIsCartOpen(true)} 
-              className="cursor-pointer bg-orange-50 dark:bg-gray-800 border border-orange-200 dark:border-gray-700 px-3.5 py-1.5 rounded-lg flex items-center gap-2 hover:bg-orange-100 dark:hover:bg-gray-700 transition"
+              className="cursor-pointer bg-orange-50 dark:bg-gray-800 border-2 border-orange-200 dark:border-gray-700 px-3 py-1.5 rounded-xl flex items-center gap-2 hover:border-[#f57224] dark:hover:border-[#f57224] transition shadow-sm active:translate-y-[1px]"
             >
-              <span className="text-xl">🛒</span>
-              <span className="bg-[#f57224] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+              <span className="text-base">🛒</span>
+              <span className="bg-[#f57224] text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
                 {cart.length}
               </span>
             </div>
 
-            {/* Dark / Light Mode Toggle Button */}
+            {/* Theme Toggle */}
             <button
               type="button"
               onClick={toggleDarkMode}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-yellow-400 font-bold transition shadow-sm cursor-pointer"
+              className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-yellow-400 font-bold transition shadow-sm hover:border-[#f57224] cursor-pointer active:translate-y-[1px]"
               title="Toggle Dark/Light Mode"
             >
               {isDarkMode ? '☀️' : '🌙'}
@@ -164,9 +162,9 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Search Bar (Only Visible on Small Screens) */}
+        {/* Mobile Search Bar */}
         <div className="md:hidden px-4 pb-3">
-          <div className="flex items-center rounded-lg overflow-hidden border-2 border-[#f57224] bg-gray-50 dark:bg-gray-800">
+          <div className="flex items-center rounded-xl overflow-hidden border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
             <input 
               type="text" 
               placeholder="Search products in DailyShopBD..." 
@@ -184,7 +182,6 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Cart Drawer Component */}
       <CartModal isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </>
   );
