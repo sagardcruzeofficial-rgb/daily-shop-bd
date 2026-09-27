@@ -63,7 +63,7 @@ export default function Navbar() {
             <button onClick={() => setActiveTab('Contact Us')} className="hover:text-white">Contact</button>
           </div>
         </div>
-<hr></hr>
+
         {/* Main Header */}
         <div className="max-w-[1300px] mx-auto px-6 py-3 flex items-center justify-between gap-6">
           
