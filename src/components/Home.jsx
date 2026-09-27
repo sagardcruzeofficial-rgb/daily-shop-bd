@@ -1,6 +1,46 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import { StoreContext } from '../context/StoreContext';
 import ProductCard from './ProductCard';
+
+// 🚀 Adsterra 300x250 Banner Component (আপনার দেওয়া কী দিয়ে সেট করা)
+function AdsterraBannerSlot() {
+  const bannerRef = useRef(null);
+
+  useEffect(() => {
+    if (bannerRef.current) {
+      // পুরনো কোনো স্ক্রিপ্ট বা কন্টেন্ট থাকলে পরিষ্কার করে নেওয়া
+      bannerRef.current.innerHTML = '';
+
+      // atOptions কনফিগারেশন
+      const conf = document.createElement('script');
+      conf.type = 'text/javascript';
+      conf.innerHTML = `
+        atOptions = {
+          'key' : '43f6ea620706d9c947daf7c96d41197e',
+          'format' : 'iframe',
+          'height' : 250,
+          'width' : 300,
+          'params' : {}
+        };
+      `;
+
+      // মূল Adsterra invoke.js স্ক্রিপ্ট লোড করা (High Revenue Format লিংক সহ)
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.async = true;
+      script.src = 'https://www.highrevenueformat.com/43f6ea620706d9c947daf7c96d41197e/invoke.js';
+
+      bannerRef.current.appendChild(conf);
+      bannerRef.current.appendChild(script);
+    }
+  }, []);
+
+  return (
+    <div ref={bannerRef} className="flex justify-center items-center min-h-[250px] w-full bg-white overflow-hidden">
+      {/* Adsterra script will inject iframe here automatically */}
+    </div>
+  );
+}
 
 export default function Home() {
   // ১. কনটেক্সট থেকে সব পসিবল ভ্যারিয়েবল ব্যাকআপসহ নেওয়া
@@ -34,41 +74,20 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [recentProducts.length]);
 
-  // ==================== Adsterra Auto-Rotation Banner/Frame ====================
-  // এখানে আপনার ৩টি ভিন্ন ব্যানার বা অ্যাড প্রমোশন রাখা হলো যা ৪ সেকেন্ড পরপর বদলাবে
-  const adsterraAdsList = [
-    {
-      title: "Special Offer 1",
-      image: "https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?auto=format&fit=crop&w=400&q=80",
-      link: "#" // এখানে আপনার Adsterra Direct Link বা Banner URL দিতে পারেন
-    },
-    {
-      title: "Flash Sale Banner",
-      image: "https://images.unsplash.com/photo-1555529771-835f59fc5efe?auto=format&fit=crop&w=400&q=80",
-      link: "#"
-    },
-    {
-      title: "Mega Discount",
-      image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=400&q=80",
-      link: "#"
-    }
-  ];
-
-  const [currentAdIndex, setCurrentAdIndex] = useState(0);
-
+  // 🔄 Adsterra Auto-Refresh / Rotation (প্রতি ৪ সেকেন্ড পরপর অ্যাড ফ্রেম রিফ্রেশ হবে)
+  const [adRefreshKey, setAdRefreshKey] = useState(0);
   useEffect(() => {
     const adInterval = setInterval(() => {
-      setCurrentAdIndex((prevIndex) => (prevIndex + 1) % adsterraAdsList.length);
-    }, 4000); // প্রতি ৪ সেকেন্ড পর পর পরিবর্তন হবে
+      setAdRefreshKey((prev) => prev + 1); // কী পরিবর্তন করার মাধ্যমে অ্যাডটি রিলোড হবে
+    }, 4000); // ৪ সেকেন্ড পর পর (4000ms)
 
     return () => clearInterval(adInterval);
-  }, [adsterraAdsList.length]);
-  // ======================================================================
+  }, []);
 
   return (
     <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '16px' }} className="font-sans">
       
-      {/* মেইন লেআউট Container (Standard CSS + Tailwind Mix) */}
+      {/* মেইন লেআউট Container */}
       <div style={{ display: 'flex', flexDirection: 'row', gap: '24px', alignItems: 'flex-start' }} className="flex-col md:flex-row">
         
         {/* ==================== ১. বাম পাশের ক্যাটাগরি সাইডবার ==================== */}
@@ -220,7 +239,7 @@ export default function Home() {
 
           </div>
 
-          {/* ==================== ৩. প্রোডাক্ট গ্রিড এবং তার ডানপাশের অ্যাড ফ্রেম ==================== */}
+          {/* ==================== ৩. প্রোডাক্ট গ্রিড এবং তার ডানপাশের Adsterra অ্যাড ফ্রেম ==================== */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
             
             {/* মূল প্রোডাক্ট গ্রিড (৩ কলাম জায়গা নেবে) */}
@@ -240,41 +259,26 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {filteredProducts.main || filteredProducts.map((prod, idx) => (
+                  {filteredProducts.map((prod, idx) => (
                     <ProductCard key={prod.id || prod._id || idx} product={prod} />
                   ))}
                 </div>
               )}
             </div>
 
-            {/* ডান পাশের অটো-রটেটিং অ্যাড ফ্রেম (১ কলাম জায়গা নেবে) */}
+            {/* ডান পাশের Adsterra 300x250 অ্যাড ফ্রেম (১ কলাম জায়গা নেবে) */}
             <div className="lg:col-span-1 bg-white p-4 rounded-xl border border-gray-200 shadow-sm sticky top-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Sponsored</span>
-                <span className="text-[9px] bg-orange-100 text-[#f57224] px-1.5 py-0.5 rounded font-bold animate-pulse">Live</span>
+                <span className="text-[9px] bg-orange-100 text-[#f57224] px-1.5 py-0.5 rounded font-bold animate-pulse">Adsterra Ad</span>
               </div>
 
-              {/* অ্যাড ফ্রেম বক্স যা প্রতি ৪ সেকেন্ড পর পর ইমেজ পরিবর্তন করবে */}
-              <div className="overflow-hidden rounded-lg border border-gray-200 h-[300px] relative bg-gray-50 flex items-center justify-center">
-                <a 
-                  href={adsterraAdsList[currentAdIndex].link} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-full h-full block relative group"
-                >
-                  <img 
-                    src={adsterraAdsList[currentAdIndex].image} 
-                    alt="Ad Banner" 
-                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2 text-white">
-                    <p className="text-[11px] font-bold">{adsterraAdsList[currentAdIndex].title}</p>
-                    <span className="text-[9px] text-orange-400 font-semibold">Click to Explore ›</span>
-                  </div>
-                </a>
+              {/* 300x250 Adsterra Banner Slot (প্রতি ৪ সেকেন্ড পরপর রিফ্রেশ হবে) */}
+              <div className="overflow-hidden rounded-lg border border-gray-100 min-h-[250px] flex items-center justify-center bg-gray-50">
+                <AdsterraBannerSlot key={adRefreshKey} />
               </div>
 
-              <p className="text-[9px] text-gray-400 text-center mt-2">Auto-rotating every 4 seconds</p>
+              <p className="text-[9px] text-gray-400 text-center mt-2">Auto-refreshing every 4s</p>
             </div>
 
           </div>
