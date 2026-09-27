@@ -2,42 +2,51 @@ import React, { useContext, useState, useEffect, useRef } from 'react';
 import { StoreContext } from '../context/StoreContext';
 import ProductCard from './ProductCard';
 
-// 🚀 Adsterra 300x250 Banner Component (আপনার দেওয়া কী দিয়ে সেট করা)
+// 🚀 পারফেক্ট Adsterra 300x250 Banner Component
 function AdsterraBannerSlot() {
   const bannerRef = useRef(null);
 
   useEffect(() => {
-    if (bannerRef.current) {
-      // পুরনো কোনো স্ক্রিপ্ট বা কন্টেন্ট থাকলে পরিষ্কার করে নেওয়া
-      bannerRef.current.innerHTML = '';
+    const container = bannerRef.current;
+    if (!container) return;
 
-      // atOptions কনফিগারেশন
-      const conf = document.createElement('script');
-      conf.type = 'text/javascript';
-      conf.innerHTML = `
-        atOptions = {
-          'key' : '43f6ea620706d9c947daf7c96d41197e',
-          'format' : 'iframe',
-          'height' : 250,
-          'width' : 300,
-          'params' : {}
-        };
-      `;
+    // ১. কন্টেইনার খালি করে নেওয়া
+    container.innerHTML = '';
 
-      // মূল Adsterra invoke.js স্ক্রিপ্ট লোড করা (High Revenue Format লিংক সহ)
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.async = true;
-      script.src = 'https://www.highrevenueformat.com/43f6ea620706d9c947daf7c96d41197e/invoke.js';
+    // ২. atOptions অবজেক্ট ডিক্লেয়ার করা
+    const confScript = document.createElement('script');
+    confScript.type = 'text/javascript';
+    confScript.text = `
+      window.atOptions = {
+        'key' : '43f6ea620706d9c947daf7c96d41197e',
+        'format' : 'iframe',
+        'height' : 250,
+        'width' : 300,
+        'params' : {}
+      };
+    `;
 
-      bannerRef.current.appendChild(conf);
-      bannerRef.current.appendChild(script);
-    }
+    // ৩. invoke.js স্ক্রিপ্ট তৈরি করা
+    const invokeScript = document.createElement('script');
+    invokeScript.type = 'text/javascript';
+    invokeScript.async = true;
+    invokeScript.src = 'https://www.highrevenueformat.com/43f6ea620706d9c947daf7c96d41197e/invoke.js';
+
+    // ৪. কন্টেইনারে স্ক্রিপ্ট দুটি অ্যাপেন্ড করা
+    container.appendChild(confScript);
+    container.appendChild(invokeScript);
+
+    // ক্লিনআপ ফাংশন
+    return () => {
+      if (container) {
+        container.innerHTML = '';
+      }
+    };
   }, []);
 
   return (
-    <div ref={bannerRef} className="flex justify-center items-center min-h-[250px] w-full bg-white overflow-hidden">
-      {/* Adsterra script will inject iframe here automatically */}
+    <div className="flex justify-center items-center min-h-[250px] w-full bg-white overflow-hidden">
+      <div ref={bannerRef} />
     </div>
   );
 }
@@ -74,12 +83,12 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [recentProducts.length]);
 
-  // 🔄 Adsterra Auto-Refresh / Rotation (প্রতি ৪ সেকেন্ড পরপর অ্যাড ফ্রেম রিফ্রেশ হবে)
+  // 🔄 Adsterra Auto-Refresh (প্রতি ৪ সেকেন্ড পরপর অ্যাড ফ্রেম রিলোড হবে)
   const [adRefreshKey, setAdRefreshKey] = useState(0);
   useEffect(() => {
     const adInterval = setInterval(() => {
-      setAdRefreshKey((prev) => prev + 1); // কী পরিবর্তন করার মাধ্যমে অ্যাডটি রিলোড হবে
-    }, 4000); // ৪ সেকেন্ড পর পর (4000ms)
+      setAdRefreshKey((prev) => prev + 1);
+    }, 4000); 
 
     return () => clearInterval(adInterval);
   }, []);
@@ -273,7 +282,7 @@ export default function Home() {
                 <span className="text-[9px] bg-orange-100 text-[#f57224] px-1.5 py-0.5 rounded font-bold animate-pulse">Adsterra Ad</span>
               </div>
 
-              {/* 300x250 Adsterra Banner Slot (প্রতি ৪ সেকেন্ড পরপর রিফ্রেশ হবে) */}
+              {/* 300x250 Adsterra Banner Slot */}
               <div className="overflow-hidden rounded-lg border border-gray-100 min-h-[250px] flex items-center justify-center bg-gray-50">
                 <AdsterraBannerSlot key={adRefreshKey} />
               </div>
