@@ -55,7 +55,9 @@ export default function Navbar() {
       <header className="bg-white dark:bg-gray-900 sticky top-0 z-40 shadow-sm border-b border-gray-100 dark:border-gray-800 font-sans transition-colors duration-300">
         {/* Top Banner Bar */}
         <div className="bg-[#111827] text-gray-300 text-[11px] py-1.5 px-6 flex justify-between items-center">
+          <marquee>
           <span>🔥 Welcome to DailyShopBD - Official Online Store</span>
+          </marquee>
           <div className="flex gap-4 text-gray-400">
             <button onClick={() => setActiveTab('About Us')} className="hover:text-white">Help Center</button>
             <button onClick={() => setActiveTab('Contact Us')} className="hover:text-white">Contact</button>
