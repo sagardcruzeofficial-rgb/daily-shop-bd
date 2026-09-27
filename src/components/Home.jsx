@@ -37,7 +37,7 @@ export default function Home() {
   return (
     <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '16px' }} className="font-sans bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-300">
       
-      {/* মেইন লেআউট Container (Standard CSS + Tailwind Mix) */}
+      {/* মেইন লেআউট Container */}
       <div style={{ display: 'flex', flexDirection: 'row', gap: '24px', alignItems: 'flex-start' }} className="flex-col md:flex-row">
         
         {/* ==================== ১. বাম পাশের ক্যাটাগরি সাইডবার ==================== */}
