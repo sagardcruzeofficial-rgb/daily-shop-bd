@@ -3,7 +3,7 @@ import { StoreContext } from '../context/StoreContext';
 import ProductCard from './ProductCard';
 
 export default function Home() {
-  // ১. কনটেক্সট থেকে সব পসিবল ভ্যারিয়েবল ব্যাকআপসহ নেওয়া
+  // ১. কনটেক্সট থেকে সব পসিবল ভ্যারিয়েবল ব্যাকআপসহ নেওয়া
   const context = useContext(StoreContext) || {};
   
   const categoryData = context.categoryData || [];
@@ -33,6 +33,31 @@ export default function Home() {
     }, 3000);
     return () => clearInterval(interval);
   }, [recentProducts.length]);
+
+  // ==================== Adsterra Auto-Rotation Logic ====================
+  // আপনার Adsterra ব্যানার কোডগুলো এখানে রাখুন (৩ থেকে ৫ সেকেন্ড পর পর বদলাবে)
+  const adsterraAdsList = [
+    `<div style="width:100%; text-align:center; min-height:250px; display:flex; align-items:center; justify-content:center; background:#f9fafb;">
+        <span style="color:#9ca3af; font-size:12px;">Adsterra Banner 1 (Replace with actual script/iframe)</span>
+     </div>`,
+    `<div style="width:100%; text-align:center; min-height:250px; display:flex; align-items:center; justify-content:center; background:#f3f4f6;">
+        <span style="color:#9ca3af; font-size:12px;">Adsterra Banner 2 (Replace with actual script/iframe)</span>
+     </div>`,
+    `<div style="width:100%; text-align:center; min-height:250px; display:flex; align-items:center; justify-content:center; background:#e5e7eb;">
+        <span style="color:#9ca3af; font-size:12px;">Adsterra Banner 3 (Replace with actual script/iframe)</span>
+     </div>`
+  ];
+
+  const [currentAdIndex, setCurrentAdIndex] = useState(0);
+
+  useEffect(() => {
+    const adInterval = setInterval(() => {
+      setCurrentAdIndex((prevIndex) => (prevIndex + 1) % adsterraAdsList.length);
+    }, 4000); // প্রতি ৪ সেকেন্ড পর পর অ্যাড পরিবর্তন হবে (4000ms = 4s)
+
+    return () => clearInterval(adInterval);
+  }, [adsterraAdsList.length]);
+  // ======================================================================
 
   return (
     <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '16px' }} className="font-sans">
@@ -189,28 +214,52 @@ export default function Home() {
 
           </div>
 
-          {/* প্রোডাক্ট গ্রিড */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">
-                {selectedCategory} {selectedSubCategory !== 'All' ? ` › ${selectedSubCategory}` : ''}
-              </h3>
-              <span className="text-xs text-gray-400 font-semibold">{filteredProducts.length} Items</span>
+          {/* ==================== ৩. প্রোডাক্ট গ্রিড এবং তার ডানপাশের Adsterra অ্যাড ফ্রেম ==================== */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+            
+            {/* মূল প্রোডাক্ট গ্রিড (৩ কলাম জায়গা নেবে) */}
+            <div className="lg:col-span-3">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">
+                  {selectedCategory} {selectedSubCategory !== 'All' ? ` › ${selectedSubCategory}` : ''}
+                </h3>
+                <span className="text-xs text-gray-400 font-semibold">{filteredProducts.length} Items</span>
+              </div>
+
+              {filteredProducts.length === 0 ? (
+                <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-300">
+                  <span className="text-4xl">🛍️</span>
+                  <h4 className="text-base font-bold text-gray-700 mt-2">No Products Found!</h4>
+                  <p className="text-xs text-gray-400 mt-1">Try selecting a different category from the left menu.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {filteredProducts.map((prod, idx) => (
+                    <ProductCard key={prod.id || prod._id || idx} product={prod} />
+                  ))}
+                </div>
+              )}
             </div>
 
-            {filteredProducts.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-300">
-                <span className="text-4xl">🛍️</span>
-                <h4 className="text-base font-bold text-gray-700 mt-2">No Products Found!</h4>
-                <p className="text-xs text-gray-400 mt-1">Try selecting a different category from the left menu.</p>
+            {/* ডান পাশের Adsterra অটো-রোটেশন অ্যাড ফ্রেম (১ কলাম জায়গা নেবে) */}
+            <div className="lg:col-span-1 bg-white p-4 rounded-xl border border-gray-200 shadow-sm sticky top-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Sponsored</span>
+                <span className="text-[9px] bg-orange-100 text-[#f57224] px-1.5 py-0.5 rounded font-bold animate-pulse">Live Ad</span>
               </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {filteredProducts.map((prod, idx) => (
-                  <ProductCard key={prod.id || prod._id || idx} product={prod} />
-                ))}
+
+              {/* অ্যাড ফ্রেম কন্টেইনার */}
+              <div className="overflow-hidden rounded-lg border border-gray-100 min-h-[250px] flex items-center justify-center bg-gray-50">
+                <div 
+                  key={currentAdIndex}
+                  className="w-full transition-all duration-500 ease-in-out"
+                  dangerouslySetInnerHTML={{ __html: adsterraAdsList[currentAdIndex] }}
+                />
               </div>
-            )}
+
+              <p className="text-[9px] text-gray-400 text-center mt-2">Auto-rotating every 4 seconds</p>
+            </div>
+
           </div>
 
         </div>
