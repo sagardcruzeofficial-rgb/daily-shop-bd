@@ -17,7 +17,7 @@ export const StoreContext = createContext();
 export const StoreProvider = ({ children }) => {
   const auth = useAuth();
   const currentUser = auth ? auth.currentUser : null;
-  const authLoading = auth ? (auth.loading || auth.initializing) : false;
+  const authLoading = auth ? auth.loading : false;
 
   const defaultProducts = [];
 
@@ -43,14 +43,13 @@ export const StoreProvider = ({ children }) => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSubCategory, setSelectedSubCategory] = useState('All');
   
-  // কার্ট স্টেট
   const [cart, setCart] = useState([]);
-
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [activeTab, setActiveTab] = useState('Home');
   const [checkoutItems, setCheckoutItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const isSyncingRef = useRef(false);
+  
+  const isInitialSync = useRef(true);
 
   // Fetch initial products, orders & categories from Firebase
   useEffect(() => {
@@ -60,8 +59,6 @@ export const StoreProvider = ({ children }) => {
         if (!prodSnap.empty) {
           const prodList = prodSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           setProducts(prodList);
-        } else {
-          setProducts(defaultProducts);
         }
 
         const orderSnap = await getDocs(collection(db, 'orders'));
@@ -85,12 +82,12 @@ export const StoreProvider = ({ children }) => {
     fetchData();
   }, []);
 
-  // ইউজার লগইন/লগআউট বা ডিভাইস পরিবর্তনের হ্যান্ডলিং
+  // Sync Cart based on Auth State (Login/Logout/Device Switch)
   useEffect(() => {
     if (authLoading) return;
 
-    const handleCartAuthSync = async () => {
-      isSyncingRef.current = true;
+    const syncCart = async () => {
+      isInitialSync.current = true;
       if (currentUser) {
         try {
           const cartRef = doc(db, 'carts', currentUser.uid);
@@ -99,10 +96,9 @@ export const StoreProvider = ({ children }) => {
           if (docSnap.exists() && Array.isArray(docSnap.data().items)) {
             const cloudItems = docSnap.data().items;
             setCart(cloudItems);
-            // লোকাল স্টোরেজেও ব্যাকআপ হিসেবে সেভ করে রাখা যাতে দ্রুত লোড হয়
             localStorage.setItem(`dailyshop_cart_${currentUser.uid}`, JSON.stringify(cloudItems));
           } else {
-            // ক্লাউডে না থাকলে লোকাল স্টোরেজ চেক করা (যদি এই ডিভাইসেই আগে থেকে থাকে)
+            // Check local storage for this specific user
             const localSaved = localStorage.getItem(`dailyshop_cart_${currentUser.uid}`);
             if (localSaved) {
               const parsedLocal = JSON.parse(localSaved);
@@ -114,35 +110,38 @@ export const StoreProvider = ({ children }) => {
             }
           }
         } catch (err) {
-          console.error("Cloud cart fetch error:", err);
+          console.error("Cart sync error:", err);
           setCart([]);
         }
       } else {
-        // লগআউট করলে কার্ট সাথে সাথে জিরো করে দেওয়া (স্ক্রিন ও স্টেট থেকে মুছবে, কিন্তু ইউজারের লোকাল/ক্লাউড ডেটা ডিলিট হবে না)
+        // Logout case: Clear cart from UI immediately without touching saved data
         setCart([]);
       }
-      isSyncingRef.current = false;
+      
+      // Allow saving after initial load sync finishes
+      setTimeout(() => {
+        isInitialSync.current = false;
+      }, 300);
     };
 
-    handleCartAuthSync();
+    syncCart();
   }, [currentUser, authLoading]);
 
-  // কার্ট পরিবর্তন হলে সাথে সাথে নির্দিষ্ট ইউজারের ফায়ারবেস এবং লোকাল স্টোরেজে সেভ হবে
+  // Save cart changes to Firestore & LocalStorage safely
   useEffect(() => {
-    if (authLoading || isSyncingRef.current) return;
+    if (authLoading || isInitialSync.current || !currentUser) return;
 
-    if (currentUser && Array.isArray(cart)) {
-      const saveToCloudAndLocal = async () => {
-        try {
-          localStorage.setItem(`dailyshop_cart_${currentUser.uid}`, JSON.stringify(cart));
-          const cartRef = doc(db, 'carts', currentUser.uid);
-          await setDoc(cartRef, { items: cart }, { merge: true });
-        } catch (error) {
-          console.error("Error saving cart to Firestore:", error);
-        }
-      };
-      saveToCloudAndLocal();
-    }
+    const saveCartToCloud = async () => {
+      try {
+        localStorage.setItem(`dailyshop_cart_${currentUser.uid}`, JSON.stringify(cart));
+        const cartRef = doc(db, 'carts', currentUser.uid);
+        await setDoc(cartRef, { items: cart }, { merge: true });
+      } catch (error) {
+        console.error("Error saving cart:", error);
+      }
+    };
+
+    saveCartToCloud();
   }, [cart, currentUser, authLoading]);
 
   const saveCategoriesToFirebase = async (updatedCategories) => {
@@ -150,7 +149,7 @@ export const StoreProvider = ({ children }) => {
       const catRef = doc(db, 'settings', 'categories');
       await setDoc(catRef, { list: updatedCategories }, { merge: true });
     } catch (error) {
-      console.error("Error saving categories to Firebase:", error);
+      console.error("Error saving categories:", error);
     }
   };
 
@@ -212,7 +211,7 @@ export const StoreProvider = ({ children }) => {
     try {
       await deleteDoc(doc(db, 'products', id));
     } catch (error) {
-      console.error("Error deleting product from Firebase:", error);
+      console.error("Error deleting product:", error);
     }
   };
 
@@ -246,7 +245,7 @@ export const StoreProvider = ({ children }) => {
     try {
       await deleteDoc(doc(db, 'orders', id));
     } catch (error) {
-      console.error("Error deleting order from Firebase:", error);
+      console.error("Error deleting order:", error);
     }
   };
 
