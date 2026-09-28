@@ -15,7 +15,9 @@ import { useAuth } from './AuthContext';
 export const StoreContext = createContext();
 
 export const StoreProvider = ({ children }) => {
-  const { currentUser, loading: authLoading } = useAuth();
+  const auth = useAuth();
+  const currentUser = auth ? auth.currentUser : null;
+  const authLoading = auth ? (auth.loading || auth.initializing) : false;
 
   const defaultProducts = [];
 
@@ -41,12 +43,17 @@ export const StoreProvider = ({ children }) => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSubCategory, setSelectedSubCategory] = useState('All');
   
-  // ইউজার লগইন করা থাকলে শুধুমাত্র লোকালস্টোরেজ থেকে কার্ট দেখাবে, না হলে খালি থাকবে
+  // সেফলি লোকালস্টোরেজ থেকে কার্ট লোড করা (ক্র্যাশ প্রোটেকশনসহ)
   const [cart, setCart] = useState(() => {
     try {
       const saved = localStorage.getItem('dailyShop_secure_cart');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.error("Cart parse error:", e);
+    }
     return [];
   });
 
@@ -88,12 +95,11 @@ export const StoreProvider = ({ children }) => {
     fetchData();
   }, []);
 
-  // Sync Cart with Firestore based on Auth State (Login / Logout / Refresh)
+  // Sync Cart with Firestore & Auth State
   useEffect(() => {
     if (authLoading) return;
 
     if (currentUser) {
-      // ইউজার লগইন থাকলে ফায়ারবেস বা লোকালস্টোরেজ থেকে তার কার্ট লোড হবে
       const cartRef = doc(db, 'carts', currentUser.uid);
       
       getDoc(cartRef).then((docSnap) => {
@@ -106,7 +112,7 @@ export const StoreProvider = ({ children }) => {
           if (localCart) {
             try {
               const parsed = JSON.parse(localCart);
-              if (parsed.length > 0) {
+              if (Array.isArray(parsed) && parsed.length > 0) {
                 setDoc(cartRef, { items: parsed }, { merge: true });
                 setCart(parsed);
               }
@@ -117,18 +123,21 @@ export const StoreProvider = ({ children }) => {
         console.error("Cart fetch error:", err);
       });
     } else {
-      // ইউজার লগআউট থাকলে কার্ট একদম সম্পূর্ণ ক্লিয়ার হয়ে যাবে এবং লোকালস্টোরেজ মুছে যাবে
       setCart([]);
-      localStorage.removeItem('dailyShop_secure_cart');
+      try {
+        localStorage.removeItem('dailyShop_secure_cart');
+      } catch (e) {}
     }
   }, [currentUser, authLoading]);
 
-  // Save cart changes to LocalStorage and Firestore when logged in
+  // Save cart changes
   useEffect(() => {
     if (loading || authLoading) return;
 
     if (currentUser) {
-      localStorage.setItem('dailyShop_secure_cart', JSON.stringify(cart));
+      try {
+        localStorage.setItem('dailyShop_secure_cart', JSON.stringify(cart));
+      } catch (e) {}
       
       const saveCartToCloud = async () => {
         try {
