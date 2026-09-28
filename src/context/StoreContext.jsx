@@ -43,7 +43,7 @@ export const StoreProvider = ({ children }) => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSubCategory, setSelectedSubCategory] = useState('All');
   
-  // সেফলি লোকালস্টোরেজ থেকে কার্ট লোড করা (ক্র্যাশ প্রোটেকশনসহ)
+  // সেফ কার্ট ইনিশিয়ালাইজেশন (সর্বদা অ্যারে নিশ্চিত করা হয়েছে)
   const [cart, setCart] = useState(() => {
     try {
       const saved = localStorage.getItem('dailyShop_secure_cart');
@@ -51,9 +51,7 @@ export const StoreProvider = ({ children }) => {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) return parsed;
       }
-    } catch (e) {
-      console.error("Cart parse error:", e);
-    }
+    } catch (e) {}
     return [];
   });
 
@@ -95,7 +93,7 @@ export const StoreProvider = ({ children }) => {
     fetchData();
   }, []);
 
-  // Sync Cart with Firestore & Auth State
+  // Sync Cart with Firestore based on Auth State
   useEffect(() => {
     if (authLoading) return;
 
@@ -105,8 +103,9 @@ export const StoreProvider = ({ children }) => {
       getDoc(cartRef).then((docSnap) => {
         if (docSnap.exists()) {
           const cloudItems = docSnap.data().items || [];
-          setCart(cloudItems);
-          localStorage.setItem('dailyShop_secure_cart', JSON.stringify(cloudItems));
+          const validItems = Array.isArray(cloudItems) ? cloudItems : [];
+          setCart(validItems);
+          localStorage.setItem('dailyShop_secure_cart', JSON.stringify(validItems));
         } else {
           const localCart = localStorage.getItem('dailyShop_secure_cart');
           if (localCart) {
@@ -123,6 +122,7 @@ export const StoreProvider = ({ children }) => {
         console.error("Cart fetch error:", err);
       });
     } else {
+      // ইউজার লগআউট থাকলে কার্ট একদম ফাঁকা হয়ে যাবে
       setCart([]);
       try {
         localStorage.removeItem('dailyShop_secure_cart');
@@ -134,7 +134,7 @@ export const StoreProvider = ({ children }) => {
   useEffect(() => {
     if (loading || authLoading) return;
 
-    if (currentUser) {
+    if (currentUser && Array.isArray(cart)) {
       try {
         localStorage.setItem('dailyShop_secure_cart', JSON.stringify(cart));
       } catch (e) {}
@@ -164,29 +164,39 @@ export const StoreProvider = ({ children }) => {
 
   const addToCart = (product) => {
     setCart((prev) => {
-      const exists = prev.some((item) => item.id === product.id);
+      const safePrev = Array.isArray(prev) ? prev : [];
+      const exists = safePrev.some((item) => item.id === product.id);
       if (exists) {
-        return prev;
+        return safePrev;
       }
-      return [...prev, { ...product, selected: true }];
+      return [...safePrev, { ...product, selected: true }];
     });
   };
 
   const toggleSelectItem = (index) => {
-    setCart((prev) => prev.map((item, i) => {
-      if (i === index) {
-        return { ...item, selected: item.selected === undefined ? false : !item.selected };
-      }
-      return item;
-    }));
+    setCart((prev) => {
+      const safePrev = Array.isArray(prev) ? prev : [];
+      return safePrev.map((item, i) => {
+        if (i === index) {
+          return { ...item, selected: item.selected === undefined ? false : !item.selected };
+        }
+        return item;
+      });
+    });
   };
 
   const toggleSelectAll = (isSelected) => {
-    setCart((prev) => prev.map((item) => ({ ...item, selected: isSelected })));
+    setCart((prev) => {
+      const safePrev = Array.isArray(prev) ? prev : [];
+      return safePrev.map((item) => ({ ...item, selected: isSelected }));
+    });
   };
 
   const removeFromCart = (index) => {
-    setCart((prev) => prev.filter((_, i) => i !== index));
+    setCart((prev) => {
+      const safePrev = Array.isArray(prev) ? prev : [];
+      return safePrev.filter((_, i) => i !== index);
+    });
   };
 
   const clearCart = () => setCart([]);
@@ -299,7 +309,8 @@ export const StoreProvider = ({ children }) => {
   };
 
   const startCheckout = (items) => {
-    const itemsToBuy = (items || cart).filter(item => item.selected !== false);
+    const safeCart = Array.isArray(cart) ? cart : [];
+    const itemsToBuy = (items || safeCart).filter(item => item.selected !== false);
     if (itemsToBuy.length === 0) {
       alert("doya kore kompokhokhe ekti product select korun!");
       return;
@@ -324,7 +335,7 @@ export const StoreProvider = ({ children }) => {
   return (
     <StoreContext.Provider value={{
       products, filteredProducts, categories, categoryData, selectedCategory, setSelectedCategory,
-      selectedSubCategory, setSelectedSubCategory, searchQuery, setSearchQuery, cart,
+      selectedSubCategory, setSelectedSubCategory, searchQuery, setSearchQuery, cart: Array.isArray(cart) ? cart : [],
       selectedProduct, setSelectedProduct, activeTab, setActiveTab,
       orders, footerLinks, checkoutItems, loading, startCheckout,
       addToCart, removeFromCart, clearCart, addProduct, deleteProduct,
