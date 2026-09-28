@@ -43,7 +43,7 @@ export const StoreProvider = ({ children }) => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSubCategory, setSelectedSubCategory] = useState('All');
   
-  // সেফ কার্ট ইনিশিয়ালাইজেশন
+  // কার্ট স্টেট ইনিশিয়ালাইজেশন (লোকাল স্টোরেজ থেকে নিরাপদ রিড)
   const [cart, setCart] = useState(() => {
     try {
       const saved = localStorage.getItem('dailyShop_secure_cart');
@@ -59,8 +59,9 @@ export const StoreProvider = ({ children }) => {
   const [activeTab, setActiveTab] = useState('Home');
   const [checkoutItems, setCheckoutItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isCartInitialized, setIsCartInitialized] = useState(false);
 
-  // Fetch initial products, orders & categories from Firebase with safety
+  // Fetch initial products, orders & categories from Firebase
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -86,7 +87,6 @@ export const StoreProvider = ({ children }) => {
       } catch (error) {
         console.error("Firebase fetch error:", error);
       } finally {
-        // নিশ্চিত করা হচ্ছে যেকোনো অবস্থায় লোডিং বন্ধ হবে
         setLoading(false);
       }
     };
@@ -94,62 +94,62 @@ export const StoreProvider = ({ children }) => {
     fetchData();
   }, []);
 
-  // Sync Cart with Firestore based on Auth State
+  // Sync Cart with Firestore based on Auth State (একবারই লোড হবে)
   useEffect(() => {
     if (authLoading) return;
 
-    if (currentUser) {
-      const cartRef = doc(db, 'carts', currentUser.uid);
-      
-      getDoc(cartRef).then((docSnap) => {
-        if (docSnap.exists()) {
-          const cloudItems = docSnap.data().items || [];
-          const validItems = Array.isArray(cloudItems) ? cloudItems : [];
-          setCart(validItems);
-          localStorage.setItem('dailyShop_secure_cart', JSON.stringify(validItems));
-        } else {
-          const localCart = localStorage.getItem('dailyShop_secure_cart');
-          if (localCart) {
-            try {
+    const fetchCloudCart = async () => {
+      if (currentUser) {
+        try {
+          const cartRef = doc(db, 'carts', currentUser.uid);
+          const docSnap = await getDoc(cartRef);
+          
+          if (docSnap.exists() && Array.isArray(docSnap.data().items)) {
+            const cloudItems = docSnap.data().items;
+            setCart(cloudItems);
+            localStorage.setItem('dailyShop_secure_cart', JSON.stringify(cloudItems));
+          } else {
+            const localCart = localStorage.getItem('dailyShop_secure_cart');
+            if (localCart) {
               const parsed = JSON.parse(localCart);
               if (Array.isArray(parsed) && parsed.length > 0) {
-                setDoc(cartRef, { items: parsed }, { merge: true });
                 setCart(parsed);
+                await setDoc(cartRef, { items: parsed }, { merge: true });
               }
-            } catch (e) {}
+            }
           }
+        } catch (err) {
+          console.error("Cart fetch error:", err);
         }
-      }).catch(err => {
-        console.error("Cart fetch error:", err);
-      });
-    } else {
-      setCart([]);
-      try {
-        localStorage.removeItem('dailyShop_secure_cart');
-      } catch (e) {}
-    }
+      }
+      setIsCartInitialized(true);
+    };
+
+    fetchCloudCart();
   }, [currentUser, authLoading]);
 
-  // Save cart changes
+  // Save cart changes to LocalStorage and Firestore (যখনই কার্ট চেঞ্জ হবে)
   useEffect(() => {
-    if (loading || authLoading) return;
+    if (!isCartInitialized || authLoading) return;
 
-    if (currentUser && Array.isArray(cart)) {
+    if (Array.isArray(cart)) {
       try {
         localStorage.setItem('dailyShop_secure_cart', JSON.stringify(cart));
       } catch (e) {}
-      
-      const saveCartToCloud = async () => {
-        try {
-          const cartRef = doc(db, 'carts', currentUser.uid);
-          await setDoc(cartRef, { items: cart }, { merge: true });
-        } catch (error) {
-          console.error("Error saving cart to Firestore:", error);
-        }
-      };
-      saveCartToCloud();
+
+      if (currentUser) {
+        const saveCartToCloud = async () => {
+          try {
+            const cartRef = doc(db, 'carts', currentUser.uid);
+            await setDoc(cartRef, { items: cart }, { merge: true });
+          } catch (error) {
+            console.error("Error saving cart to Firestore:", error);
+          }
+        };
+        saveCartToCloud();
+      }
     }
-  }, [cart, currentUser, loading, authLoading]);
+  }, [cart, currentUser, isCartInitialized, authLoading]);
 
   const saveCategoriesToFirebase = async (updatedCategories) => {
     try {
@@ -167,6 +167,7 @@ export const StoreProvider = ({ children }) => {
       const safePrev = Array.isArray(prev) ? prev : [];
       const exists = safePrev.some((item) => item.id === product.id);
       if (exists) {
+        // যদি অলরেডি থাকে, কোয়ান্টিটি বাড়াতে চাইলে বাড়াতে পারেন বা একই রাখতে পারেন
         return safePrev;
       }
       return [...safePrev, { ...product, selected: true }];
@@ -312,7 +313,7 @@ export const StoreProvider = ({ children }) => {
     const safeCart = Array.isArray(cart) ? cart : [];
     const itemsToBuy = (items || safeCart).filter(item => item.selected !== false);
     if (itemsToBuy.length === 0) {
-      alert("দয়া করে কমপক্ষে একটি প্রোডাক্ট সিলেক্ট করুন!");
+      alert("দয়া করে কমপক্ষে একটি প্রোডাক্ট সিলেক্ট করুন!");
       return;
     }
     setCheckoutItems(itemsToBuy);
