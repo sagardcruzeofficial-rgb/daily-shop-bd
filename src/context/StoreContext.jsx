@@ -81,9 +81,40 @@ export const StoreProvider = ({ children }) => {
     fetchData();
   }, []);
 
-  // 1. Fetch cart on load (LocalStorage for guests, or fallback)
+  // Sync Cart with Firestore or LocalStorage based on Authentication State
   useEffect(() => {
-    if (!currentUser) {
+    if (currentUser) {
+      // Logged-in user: Real-time sync with Firestore using their specific UID
+      const cartRef = doc(db, 'carts', currentUser.uid);
+      
+      const unsubscribe = onSnapshot(cartRef, async (docSnap) => {
+        if (docSnap.exists()) {
+          const cloudItems = docSnap.data().items || [];
+          setCart(cloudItems);
+          localStorage.setItem(`dailyShopCart_${currentUser.uid}`, JSON.stringify(cloudItems));
+        } else {
+          // If no cloud cart exists yet, check if there's any local guest cart or saved cart to migrate
+          const localCart = localStorage.getItem('dailyShopCart') || localStorage.getItem(`dailyShopCart_${currentUser.uid}`);
+          let initialCart = [];
+          if (localCart) {
+            try {
+              initialCart = JSON.parse(localCart);
+            } catch (e) {
+              initialCart = [];
+            }
+          }
+          setCart(initialCart);
+          if (initialCart.length > 0) {
+            await setDoc(cartRef, { items: initialCart }, { merge: true });
+          }
+        }
+      }, (error) => {
+        console.error("Error listening to cart changes:", error);
+      });
+
+      return () => unsubscribe();
+    } else {
+      // Guest user: Use generic local storage
       const localCart = localStorage.getItem('dailyShopCart');
       if (localCart) {
         try {
@@ -91,57 +122,30 @@ export const StoreProvider = ({ children }) => {
         } catch (e) {
           setCart([]);
         }
+      } else {
+        setCart([]);
       }
     }
   }, [currentUser]);
 
-  // 2. Real-time sync cart with Firestore using onSnapshot when logged in
-  useEffect(() => {
-    if (!currentUser) return;
-
-    const cartRef = doc(db, 'carts', currentUser.uid);
-    const unsubscribe = onSnapshot(cartRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const cloudItems = docSnap.data().items || [];
-        setCart(cloudItems);
-        localStorage.setItem('dailyShopCart', JSON.stringify(cloudItems));
-      } else {
-        const localCart = localStorage.getItem('dailyShopCart');
-        if (localCart) {
-          try {
-            const parsedLocal = JSON.parse(localCart);
-            if (parsedLocal.length > 0) {
-              setCart(parsedLocal);
-              setDoc(cartRef, { items: parsedLocal }, { merge: true });
-            }
-          } catch (e) {}
-        }
-      }
-    }, (error) => {
-      console.error("Error listening to cart changes:", error);
-    });
-
-    return () => unsubscribe();
-  }, [currentUser]);
-
-  // 3. Save cart to LocalStorage & Firestore whenever cart changes
+  // Save cart changes to LocalStorage and Firestore (if logged in)
   useEffect(() => {
     if (loading) return;
 
-    localStorage.setItem('dailyShopCart', JSON.stringify(cart));
-
-    const saveCartToCloud = async () => {
-      if (currentUser) {
+    if (currentUser) {
+      localStorage.setItem(`dailyShopCart_${currentUser.uid}`, JSON.stringify(cart));
+      const saveCartToCloud = async () => {
         try {
           const cartRef = doc(db, 'carts', currentUser.uid);
           await setDoc(cartRef, { items: cart }, { merge: true });
         } catch (error) {
           console.error("Error saving cart to Firestore:", error);
         }
-      }
-    };
-
-    saveCartToCloud();
+      };
+      saveCartToCloud();
+    } else {
+      localStorage.setItem('dailyShopCart', JSON.stringify(cart));
+    }
   }, [cart, currentUser, loading]);
 
   const saveCategoriesToFirebase = async (updatedCategories) => {
