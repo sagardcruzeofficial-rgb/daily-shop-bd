@@ -85,8 +85,7 @@ export const StoreProvider = ({ children }) => {
     fetchData();
   }, []);
 
-  // রিকোয়ারমেন্ট ১ ও ৩: ইউজার লগইন করলে শুধুমাত্র তার নিজস্ব uid এর কার্ট ফায়ারবেস থেকে আসবে
-  // রিকোয়ারমেন্ট ২: ইউজার লগআউট করলেই কার্ট সাথে সাথে জিরো (खाली) হয়ে যাবে
+  // ইউজার লগইন/লগআউট বা ডিভাইস পরিবর্তনের হ্যান্ডলিং
   useEffect(() => {
     if (authLoading) return;
 
@@ -98,21 +97,29 @@ export const StoreProvider = ({ children }) => {
           const docSnap = await getDoc(cartRef);
           
           if (docSnap.exists() && Array.isArray(docSnap.data().items)) {
-            setCart(docSnap.data().items);
+            const cloudItems = docSnap.data().items;
+            setCart(cloudItems);
+            // লোকাল স্টোরেজেও ব্যাকআপ হিসেবে সেভ করে রাখা যাতে দ্রুত লোড হয়
+            localStorage.setItem(`dailyshop_cart_${currentUser.uid}`, JSON.stringify(cloudItems));
           } else {
-            setCart([]);
-            await setDoc(cartRef, { items: [] }, { merge: true });
+            // ক্লাউডে না থাকলে লোকাল স্টোরেজ চেক করা (যদি এই ডিভাইসেই আগে থেকে থাকে)
+            const localSaved = localStorage.getItem(`dailyshop_cart_${currentUser.uid}`);
+            if (localSaved) {
+              const parsedLocal = JSON.parse(localSaved);
+              setCart(parsedLocal);
+              await setDoc(cartRef, { items: parsedLocal }, { merge: true });
+            } else {
+              setCart([]);
+              await setDoc(cartRef, { items: [] }, { merge: true });
+            }
           }
         } catch (err) {
           console.error("Cloud cart fetch error:", err);
           setCart([]);
         }
       } else {
-        // লগআউট অবস্থায় কার্ট সম্পুর্ণ জিরো
+        // লগআউট করলে কার্ট সাথে সাথে জিরো করে দেওয়া (স্ক্রিন ও স্টেট থেকে মুছবে, কিন্তু ইউজারের লোকাল/ক্লাউড ডেটা ডিলিট হবে না)
         setCart([]);
-        try {
-          localStorage.removeItem('dailyShop_secure_cart');
-        } catch (e) {}
       }
       isSyncingRef.current = false;
     };
@@ -120,20 +127,21 @@ export const StoreProvider = ({ children }) => {
     handleCartAuthSync();
   }, [currentUser, authLoading]);
 
-  // কার্ট পরিবর্তন হলে সাথে সাথে শুধু নির্দিষ্ট ইউজারের ক্লাউড ডাটাবেজে সেভ হবে
+  // কার্ট পরিবর্তন হলে সাথে সাথে নির্দিষ্ট ইউজারের ফায়ারবেস এবং লোকাল স্টোরেজে সেভ হবে
   useEffect(() => {
     if (authLoading || isSyncingRef.current) return;
 
     if (currentUser && Array.isArray(cart)) {
-      const saveToCloud = async () => {
+      const saveToCloudAndLocal = async () => {
         try {
+          localStorage.setItem(`dailyshop_cart_${currentUser.uid}`, JSON.stringify(cart));
           const cartRef = doc(db, 'carts', currentUser.uid);
           await setDoc(cartRef, { items: cart }, { merge: true });
         } catch (error) {
           console.error("Error saving cart to Firestore:", error);
         }
       };
-      saveToCloud();
+      saveToCloudAndLocal();
     }
   }, [cart, currentUser, authLoading]);
 
