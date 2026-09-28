@@ -49,7 +49,8 @@ export const StoreProvider = ({ children }) => {
   const [checkoutItems, setCheckoutItems] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  const isInitialSync = useRef(true);
+  // ফায়ারবেস বা লোকাল স্টোরেজ থেকে ডেটা লোড হওয়া নিশ্চিত করার ফ্ল্যাগ
+  const cartLoadedRef = useRef(false);
 
   // Fetch initial products, orders & categories from Firebase
   useEffect(() => {
@@ -82,23 +83,24 @@ export const StoreProvider = ({ children }) => {
     fetchData();
   }, []);
 
-  // Sync Cart based on Auth State (Login/Logout/Device Switch)
+  // Sync Cart: ইউজার লগইন করলে ফায়ারবেস বা লোকাল স্টোরেজ থেকে ডেটা ফেচ করা
   useEffect(() => {
     if (authLoading) return;
 
+    cartLoadedRef.current = false; // নতুন ইউজারের জন্য লোডিং শুরু
+
     const syncCart = async () => {
-      isInitialSync.current = true;
       if (currentUser) {
         try {
           const cartRef = doc(db, 'carts', currentUser.uid);
           const docSnap = await getDoc(cartRef);
           
-          if (docSnap.exists() && Array.isArray(docSnap.data().items)) {
+          if (docSnap.exists() && Array.isArray(docSnap.data().items) && docSnap.data().items.length > 0) {
             const cloudItems = docSnap.data().items;
             setCart(cloudItems);
             localStorage.setItem(`dailyshop_cart_${currentUser.uid}`, JSON.stringify(cloudItems));
           } else {
-            // Check local storage for this specific user
+            // ফায়ারবেসে না থাকলে লোকাল স্টোরেজ চেক করা
             const localSaved = localStorage.getItem(`dailyshop_cart_${currentUser.uid}`);
             if (localSaved) {
               const parsedLocal = JSON.parse(localSaved);
@@ -106,7 +108,6 @@ export const StoreProvider = ({ children }) => {
               await setDoc(cartRef, { items: parsedLocal }, { merge: true });
             } else {
               setCart([]);
-              await setDoc(cartRef, { items: [] }, { merge: true });
             }
           }
         } catch (err) {
@@ -114,22 +115,20 @@ export const StoreProvider = ({ children }) => {
           setCart([]);
         }
       } else {
-        // Logout case: Clear cart from UI immediately without touching saved data
+        // লগআউট অবস্থায় কার্ট খালি রাখা
         setCart([]);
       }
       
-      // Allow saving after initial load sync finishes
-      setTimeout(() => {
-        isInitialSync.current = false;
-      }, 300);
+      // ডেটা লোড সম্পন্ন, এখন সেভ করার অনুমতি দেওয়া হলো
+      cartLoadedRef.current = true;
     };
 
     syncCart();
   }, [currentUser, authLoading]);
 
-  // Save cart changes to Firestore & LocalStorage safely
+  // Save Cart: শুধুমাত্র ডেটা সফলভাবে লোড হওয়ার পরেই ফায়ারবেস ও লোকাল স্টোরেজে আপডেট হবে
   useEffect(() => {
-    if (authLoading || isInitialSync.current || !currentUser) return;
+    if (authLoading || !cartLoadedRef.current || !currentUser) return;
 
     const saveCartToCloud = async () => {
       try {
@@ -302,7 +301,7 @@ export const StoreProvider = ({ children }) => {
   };
 
   const startCheckout = (items) => {
-    const safeCart = Array.isArray(cart) ? cart : [];
+    const safeCart =Array.isArray(cart) ? cart : [];
     const itemsToBuy = (items || safeCart).filter(item => item.selected !== false);
     if (itemsToBuy.length === 0) {
       alert("দয়া করে কমপক্ষে একটি প্রোডাক্ট সিলেক্ট করুন!");
