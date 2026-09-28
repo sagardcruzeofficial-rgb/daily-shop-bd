@@ -1,11 +1,11 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { 
-  collection, 
-  getDocs, 
-  addDoc, 
-  deleteDoc, 
-  doc, 
+import {  
+  collection,  
+  getDocs,  
+  addDoc,  
+  deleteDoc,  
+  doc,  
   updateDoc,
   setDoc,
   getDoc
@@ -43,7 +43,7 @@ export const StoreProvider = ({ children }) => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSubCategory, setSelectedSubCategory] = useState('All');
   
-  // সেফ কার্ট ইনিশিয়ালাইজেশন (সর্বদা অ্যারে নিশ্চিত করা হয়েছে)
+  // সেফ কার্ট ইনিশিয়ালাইজেশন
   const [cart, setCart] = useState(() => {
     try {
       const saved = localStorage.getItem('dailyShop_secure_cart');
@@ -60,7 +60,7 @@ export const StoreProvider = ({ children }) => {
   const [checkoutItems, setCheckoutItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch initial products, orders & categories from Firebase
+  // Fetch initial products, orders & categories from Firebase with safety
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -86,6 +86,7 @@ export const StoreProvider = ({ children }) => {
       } catch (error) {
         console.error("Firebase fetch error:", error);
       } finally {
+        // নিশ্চিত করা হচ্ছে যেকোনো অবস্থায় লোডিং বন্ধ হবে
         setLoading(false);
       }
     };
@@ -122,7 +123,6 @@ export const StoreProvider = ({ children }) => {
         console.error("Cart fetch error:", err);
       });
     } else {
-      // ইউজার লগআউট থাকলে কার্ট একদম ফাঁকা হয়ে যাবে
       setCart([]);
       try {
         localStorage.removeItem('dailyShop_secure_cart');
@@ -312,7 +312,7 @@ export const StoreProvider = ({ children }) => {
     const safeCart = Array.isArray(cart) ? cart : [];
     const itemsToBuy = (items || safeCart).filter(item => item.selected !== false);
     if (itemsToBuy.length === 0) {
-      alert("doya kore kompokhokhe ekti product select korun!");
+      alert("দয়া করে কমপক্ষে একটি প্রোডাক্ট সিলেক্ট করুন!");
       return;
     }
     setCheckoutItems(itemsToBuy);
