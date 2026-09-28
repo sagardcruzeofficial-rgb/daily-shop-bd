@@ -18,6 +18,8 @@ export const StoreContext = createContext();
 export const StoreProvider = ({ children }) => {
   const auth = useAuth();
   const currentUser = auth ? auth.currentUser : null;
+  // AuthContext-এ সাধারণত auth.loading বা auth.initializing থাকে, না থাকলে ডিফল্ট ফলস ধরবে
+  const isAuthLoading = auth ? (auth.loading || auth.initializing) : false;
 
   const defaultProducts = [];
 
@@ -81,8 +83,11 @@ export const StoreProvider = ({ children }) => {
     fetchData();
   }, []);
 
-  // Sync Cart with Firestore based on User Authentication State
+  // Sync Cart with Firestore based on User Authentication State & Refresh Protection
   useEffect(() => {
+    // রিফ্রেশ করার সময় ফায়ারবেস অথ লোড হতে যে সময় নেয়, ততদিন ক্লিয়ার করা হোল্ড রাখবে
+    if (isAuthLoading) return;
+
     if (currentUser) {
       // Logged-in user: Fetch their cart from Firestore using their unique UID
       const cartRef = doc(db, 'carts', currentUser.uid);
@@ -100,14 +105,14 @@ export const StoreProvider = ({ children }) => {
 
       return () => unsubscribe();
     } else {
-      // Logged-out user: Completely clear the cart so no previous user's items stay visible
+      // Real logout: Clear the cart completely
       setCart([]);
     }
-  }, [currentUser]);
+  }, [currentUser, isAuthLoading]);
 
   // Save cart changes to Firestore whenever cart is modified and user is logged in
   useEffect(() => {
-    if (loading) return;
+    if (loading || isAuthLoading) return;
 
     if (currentUser) {
       const saveCartToCloud = async () => {
@@ -120,7 +125,7 @@ export const StoreProvider = ({ children }) => {
       };
       saveCartToCloud();
     }
-  }, [cart, currentUser, loading]);
+  }, [cart, currentUser, loading, isAuthLoading]);
 
   const saveCategoriesToFirebase = async (updatedCategories) => {
     try {
@@ -191,7 +196,7 @@ export const StoreProvider = ({ children }) => {
       if (data && typeof data.inStock === 'boolean') {
         const prodRef = doc(db, 'products', productId);
         await updateDoc(prodRef, { inStock: data.inStock });
-        setProducts(prev => prev.p.id === productId ? { ...p, inStock: data.inStock } : p);
+        setProducts(prev => prev.map(p => p.id === productId ? { ...p, inStock: data.inStock } : p));
       }
     } catch (err) {
       console.error("Stock check failed:", err);
