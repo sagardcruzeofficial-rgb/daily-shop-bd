@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useRef } from 'react';
 import { db } from '../firebase';
 import { 
   collection, 
@@ -16,7 +16,9 @@ import { useAuth } from './AuthContext';
 export const StoreContext = createContext();
 
 export const StoreProvider = ({ children }) => {
-  const { currentUser, loading: authLoading } = useAuth();
+  const auth = useAuth();
+  const currentUser = auth ? auth.currentUser : null;
+  const prevUserRef = useRef(currentUser);
 
   const defaultProducts = [];
 
@@ -41,12 +43,12 @@ export const StoreProvider = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSubCategory, setSelectedSubCategory] = useState('All');
-  
-  // ইনিশিয়ালের জন্য লোকালস্টোরেজ থেকে কার্ট তুলে নেওয়া যাতে রিফ্রেশের সাথে সাথেই চোখের পলকে শো করে
+
+  // কার্ট ইনিশিয়ালাইজেশন: রিফ্রেশ দিলেও যাতে ইনস্ট্যান্ট লোকালস্টোরেজ থেকে ডেটা চলে আসে
   const [cart, setCart] = useState(() => {
     try {
-      const saved = localStorage.getItem('dailyShop_secure_cart');
-      if (saved) return JSON.parse(saved);
+      const savedCart = localStorage.getItem('dailyShop_active_cart');
+      if (savedCart) return JSON.parse(savedCart);
     } catch (e) {}
     return [];
   });
@@ -89,23 +91,27 @@ export const StoreProvider = ({ children }) => {
     fetchData();
   }, []);
 
-  // Sync Cart with Firestore based on Auth State
+  // Handle Login / Logout / Refresh state properly
   useEffect(() => {
-    // Auth এখনো লোড হলে কিছু করার দরকার নেই
-    if (authLoading) return;
+    // যদি ইউজার পরিবর্তন হয় (যেমন লগআউট করা)
+    if (prevUserRef.current && !currentUser) {
+      setCart([]);
+      localStorage.removeItem('dailyShop_active_cart');
+    }
+    prevUserRef.current = currentUser;
 
     if (currentUser) {
-      // ইউজার লগইন থাকলে ফায়ারবেস থেকে কার্ট ডাটা নিয়ে আসা
+      // ইউজার লগইন থাকা অবস্থায় ফায়ারবেস থেকে কার্ট ফেচ করা
       const cartRef = doc(db, 'carts', currentUser.uid);
       
       getDoc(cartRef).then((docSnap) => {
         if (docSnap.exists()) {
           const cloudItems = docSnap.data().items || [];
           setCart(cloudItems);
-          localStorage.setItem('dailyShop_secure_cart', JSON.stringify(cloudItems));
+          localStorage.setItem('dailyShop_active_cart', JSON.stringify(cloudItems));
         } else {
-          // ক্লাউডে না থাকলে লোকালস্টোরেজের কার্ট ক্লাউডে সিঙ্ক করে দেওয়া
-          const localCart = localStorage.getItem('dailyShop_secure_cart');
+          // যদি ক্লাউডে কার্ট না থাকে, লোকালস্টোরেজে থাকলে তা ক্লাউডে সেভ করে দেওয়া
+          const localCart = localStorage.getItem('dailyShop_active_cart');
           if (localCart) {
             try {
               const parsed = JSON.parse(localCart);
@@ -118,21 +124,16 @@ export const StoreProvider = ({ children }) => {
       }).catch(err => {
         console.error("Cart fetch error:", err);
       });
-    } else {
-      // ইউজার না থাকলে (লগআউট করলে) কার্ট পরিষ্কার করে দেওয়া
-      setCart([]);
-      localStorage.removeItem('dailyShop_secure_cart');
     }
-  }, [currentUser, authLoading]);
+  }, [currentUser]);
 
   // Save cart changes to LocalStorage and Firestore
   useEffect(() => {
-    if (loading || authLoading) return;
+    if (loading) return;
 
-    // লোকালস্টোরেজে আপডেট রাখা
-    localStorage.setItem('dailyShop_secure_cart', JSON.stringify(cart));
+    // লোকালস্টোরেজে সবসময় কার্ট সেভ থাকবে যাতে রিফ্রেশ দিলে হারিয়ে না যায়
+    localStorage.setItem('dailyShop_active_cart', JSON.stringify(cart));
 
-    // ইউজার লগইন থাকলে ফায়ারবেসেও সেভ করা
     if (currentUser) {
       const saveCartToCloud = async () => {
         try {
@@ -144,7 +145,7 @@ export const StoreProvider = ({ children }) => {
       };
       saveCartToCloud();
     }
-  }, [cart, currentUser, loading, authLoading]);
+  }, [cart, currentUser, loading]);
 
   const saveCategoriesToFirebase = async (updatedCategories) => {
     try {
