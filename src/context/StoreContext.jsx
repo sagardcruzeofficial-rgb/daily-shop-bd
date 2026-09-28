@@ -18,7 +18,6 @@ export const StoreContext = createContext();
 export const StoreProvider = ({ children }) => {
   const auth = useAuth();
   const currentUser = auth ? auth.currentUser : null;
-  // AuthContext-এ সাধারণত auth.loading বা auth.initializing থাকে, না থাকলে ডিফল্ট ফলস ধরবে
   const isAuthLoading = auth ? (auth.loading || auth.initializing) : false;
 
   const defaultProducts = [];
@@ -44,7 +43,23 @@ export const StoreProvider = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSubCategory, setSelectedSubCategory] = useState('All');
-  const [cart, setCart] = useState([]);
+
+  // Initial Cart load: রিফ্রেশের সাথে সাথে যাতে ইনস্ট্যান্ট ডাটা থাকে, তাই ইউজারের UID ভিত্তিক লোকালস্টোরেজ চেক করা হচ্ছে
+  const [cart, setCart] = useState(() => {
+    // Note: Initial render-এ currentUser সরাসরি পাওয়া না গেলে ব্রাউজার স্টোরেজ থেকে সেভড কার্ট তোলার চেষ্টা করা যেতে পারে
+    try {
+      const keys = Object.keys(localStorage);
+      const userCartKey = keys.find(k => k.startsWith('dailyShopCart_'));
+      if (userCartKey) {
+        const saved = localStorage.getItem(userCartKey);
+        if (saved) return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return [];
+  });
+
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [activeTab, setActiveTab] = useState('Home');
   const [checkoutItems, setCheckoutItems] = useState([]);
@@ -83,21 +98,39 @@ export const StoreProvider = ({ children }) => {
     fetchData();
   }, []);
 
-  // Sync Cart with Firestore based on User Authentication State & Refresh Protection
+  // Sync Cart with Firestore based on User Authentication State
   useEffect(() => {
-    // রিফ্রেশ করার সময় ফায়ারবেস অথ লোড হতে যে সময় নেয়, ততদিন ক্লিয়ার করা হোল্ড রাখবে
     if (isAuthLoading) return;
 
     if (currentUser) {
-      // Logged-in user: Fetch their cart from Firestore using their unique UID
+      // ইউজার লগইন থাকা অবস্থায় লোকালস্টোরেজ থেকে তার নিজের কার্ট তুলে দেওয়া যাতে রিফ্রেশে একচুলও ডাটা না হারায়
+      const localKey = `dailyShopCart_${currentUser.uid}`;
+      const savedLocalCart = localStorage.getItem(localKey);
+      if (savedLocalCart) {
+        try {
+          setCart(JSON.parse(savedLocalCart));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // Firestore থেকে রিয়েল-টাইম সিঙ্ক
       const cartRef = doc(db, 'carts', currentUser.uid);
-      
       const unsubscribe = onSnapshot(cartRef, (docSnap) => {
         if (docSnap.exists()) {
           const cloudItems = docSnap.data().items || [];
           setCart(cloudItems);
+          localStorage.setItem(localKey, JSON.stringify(cloudItems));
         } else {
-          setCart([]);
+          // যদি ক্লাউডে না থাকে কিন্তু লোকালস্টোরেজে থাকে, ক্লাউডে সেভ করে দিবে
+          if (savedLocalCart) {
+            try {
+              const parsed = JSON.parse(savedLocalCart);
+              if (parsed.length > 0) {
+                setDoc(cartRef, { items: parsed }, { merge: true });
+              }
+            } catch (err) {}
+          }
         }
       }, (error) => {
         console.error("Error listening to cart changes:", error);
@@ -105,16 +138,27 @@ export const StoreProvider = ({ children }) => {
 
       return () => unsubscribe();
     } else {
-      // Real logout: Clear the cart completely
+      // রিয়েল লগআউট করলে সব ক্লিয়ার হবে
       setCart([]);
+      // লগআউটের সময় আগের সব ইউজারের লোকাল কার্ট কি পরিষ্কার করে দেওয়া ভালো
+      try {
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('dailyShopCart_')) {
+            localStorage.removeItem(key);
+          }
+        });
+      } catch (e) {}
     }
   }, [currentUser, isAuthLoading]);
 
-  // Save cart changes to Firestore whenever cart is modified and user is logged in
+  // Save cart changes to Firestore and LocalStorage whenever cart is modified
   useEffect(() => {
     if (loading || isAuthLoading) return;
 
     if (currentUser) {
+      const localKey = `dailyShopCart_${currentUser.uid}`;
+      localStorage.setItem(localKey, JSON.stringify(cart));
+
       const saveCartToCloud = async () => {
         try {
           const cartRef = doc(db, 'carts', currentUser.uid);
