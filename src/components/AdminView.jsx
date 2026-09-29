@@ -6,7 +6,8 @@ export default function AdminView() {
     products, addProduct, deleteProduct, 
     orders, deleteOrder, 
     footerLinks = [], addFooterLink, deleteFooterLink,
-    categoryData = [], addCategory, deleteCategory, addSubCategory, deleteSubCategory 
+    categoryData = [], addCategory, deleteCategory, addSubCategory, deleteSubCategory,
+    supplierList = [], addSupplierSource 
   } = useContext(StoreContext);
   
   const [title, setTitle] = useState('');
@@ -17,6 +18,7 @@ export default function AdminView() {
   const [description, setDescription] = useState('');
   const [supplierUrl, setSupplierUrl] = useState('');
   const [supplierName, setSupplierName] = useState('DropShop');
+  const [newSupplierInput, setNewSupplierInput] = useState('');
   const [sizesInput, setSizesInput] = useState('M, L, XL, XXL');
   const [isFetching, setIsFetching] = useState(false);
 
@@ -35,6 +37,13 @@ export default function AdminView() {
       if (!targetCategoryForSub) setTargetCategoryForSub(categoryData[0].name);
     }
   }, [categoryData]);
+
+  // Set default supplier if available
+  useEffect(() => {
+    if (supplierList.length > 0 && !supplierName) {
+      setSupplierName(supplierList[0]);
+    }
+  }, [supplierList]);
 
   // 🔄 Check Stock & Auto Fetch Sizes via API
   const handleCheckStock = async () => {
@@ -70,6 +79,17 @@ export default function AdminView() {
     }
   };
 
+  const handleAddNewSupplier = () => {
+    if (!newSupplierInput.trim()) {
+      alert('দয়া করে সাপ্লায়ারের নাম লিখুন!');
+      return;
+    }
+    const formattedName = newSupplierInput.trim();
+    addSupplierSource(formattedName);
+    setSupplierName(formattedName);
+    setNewSupplierInput('');
+  };
+
   const handleProductSubmit = (e) => {
     e.preventDefault();
 
@@ -85,7 +105,7 @@ export default function AdminView() {
       subCategory: selectedSubCat,
       description, 
       sizes: parsedSizes,
-      supplierName: supplierName, 
+      supplierName: supplierName || 'DropShop', 
       supplierUrl: supplierUrl.trim() 
     });
 
@@ -192,7 +212,6 @@ export default function AdminView() {
                       </td>
                       <td className="p-2 border font-bold text-orange-600">৳{ord.price}</td>
                       
-                      {/* 💳 Payment Method, Sender No & TrxID column */}
                       <td className="p-2 border">
                         <span className={`inline-block px-2 py-0.5 rounded font-black text-[10px] ${
                           ord.paymentMethod === 'COD' ? 'bg-gray-200 text-gray-800' : 'bg-pink-100 text-pink-700'
@@ -258,12 +277,28 @@ export default function AdminView() {
                 onChange={(e) => setSupplierName(e.target.value)}
                 className="w-full border border-orange-300 p-1.5 text-xs rounded bg-white font-semibold text-gray-700"
               >
-                <option value="DropShop">DropShop (BDSHOP)</option>
-                <option value="Dropupseller">Dropupseller</option>
-                <option value="DropshippingBD">DropshippingBD</option>
-                <option value="Local Wholesale Market">Local Wholesale Market</option>
-                <option value="Other Supplier">Other Supplier</option>
+                {supplierList && supplierList.map((sup, index) => (
+                  <option key={index} value={sup}>{sup}</option>
+                ))}
               </select>
+
+              {/* ➕ Add New Supplier Section */}
+              <div className="flex gap-1.5 mt-1">
+                <input 
+                  type="text" 
+                  placeholder="New supplier (e.g. dropify.com)" 
+                  value={newSupplierInput}
+                  onChange={(e) => setNewSupplierInput(e.target.value)}
+                  className="w-full border border-orange-300 p-1 text-[11px] rounded bg-white"
+                />
+                <button 
+                  type="button" 
+                  onClick={handleAddNewSupplier}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1 rounded text-[11px] whitespace-nowrap shadow"
+                >
+                  + Add
+                </button>
+              </div>
 
               <label className="block text-[10px] font-bold text-orange-800 uppercase mt-1">🔒 Hidden Supplier Link:</label>
               <input 
