@@ -7,7 +7,7 @@ export default function AdminView() {
     orders, deleteOrder, 
     footerLinks = [], addFooterLink, deleteFooterLink,
     categoryData = [], addCategory, deleteCategory, addSubCategory, deleteSubCategory,
-    supplierList = [], addSupplierSource 
+    supplierList = [], addSupplierSource, deleteSupplierSource 
   } = useContext(StoreContext);
   
   const [title, setTitle] = useState('');
@@ -88,6 +88,21 @@ export default function AdminView() {
     addSupplierSource(formattedName);
     setSupplierName(formattedName);
     setNewSupplierInput('');
+    alert('Supplier Added Successfully!');
+  };
+
+  const handleDeleteSupplier = (supToDelete) => {
+    if (supplierList.length <= 1) {
+      alert('কমপক্ষে একটি সাপ্লায়ার থাকা বাধ্যতামূলক!');
+      return;
+    }
+    if (window.confirm(`Are you sure you want to delete supplier "${supToDelete}"?`)) {
+      deleteSupplierSource(supToDelete);
+      if (supplierName === supToDelete) {
+        const remaining = supplierList.filter(s => s !== supToDelete);
+        setSupplierName(remaining[0] || '');
+      }
+    }
   };
 
   const handleProductSubmit = (e) => {
@@ -282,22 +297,42 @@ export default function AdminView() {
                 ))}
               </select>
 
-              {/* ➕ Add New Supplier Section */}
-              <div className="flex gap-1.5 mt-1">
-                <input 
-                  type="text" 
-                  placeholder="New supplier (e.g. dropify.com)" 
-                  value={newSupplierInput}
-                  onChange={(e) => setNewSupplierInput(e.target.value)}
-                  className="w-full border border-orange-300 p-1 text-[11px] rounded bg-white"
-                />
-                <button 
-                  type="button" 
-                  onClick={handleAddNewSupplier}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1 rounded text-[11px] whitespace-nowrap shadow"
-                >
-                  + Add
-                </button>
+              {/* ➕ Add & Manage Suppliers Section */}
+              <div className="mt-2 space-y-1.5 border-t border-orange-200 pt-2">
+                <span className="text-[10px] font-bold text-orange-900 block">Manage Suppliers (Add / Delete):</span>
+                <div className="flex gap-1.5">
+                  <input 
+                    type="text" 
+                    placeholder="New supplier name" 
+                    value={newSupplierInput}
+                    onChange={(e) => setNewSupplierInput(e.target.value)}
+                    className="w-full border border-orange-300 p-1 text-[11px] rounded bg-white"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={handleAddNewSupplier}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1 rounded text-[11px] whitespace-nowrap shadow"
+                  >
+                    + Add
+                  </button>
+                </div>
+
+                {/* List of current suppliers with delete option */}
+                <div className="max-h-24 overflow-y-auto space-y-1 bg-white p-1.5 rounded border border-orange-200">
+                  {supplierList.map((sup) => (
+                    <div key={sup} className="flex justify-between items-center text-[10px] bg-gray-50 px-1.5 py-0.5 rounded">
+                      <span className="font-semibold text-gray-700">{sup}</span>
+                      <button 
+                        type="button"
+                        onClick={() => handleDeleteSupplier(sup)}
+                        className="text-red-500 hover:text-red-700 font-bold px-1"
+                        title="Delete Supplier"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <label className="block text-[10px] font-bold text-orange-800 uppercase mt-1">🔒 Hidden Supplier Link:</label>
