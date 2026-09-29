@@ -81,7 +81,7 @@ export default function AdminView() {
 
   const handleAddNewSupplier = () => {
     if (!newSupplierInput.trim()) {
-      alert('দয়া করে সাপ্লায়ারের নাম লিখুন!');
+      alert('দয়া করে সাপ্লায়ারের নাম লিখুন!');
       return;
     }
     const formattedName = newSupplierInput.trim();
