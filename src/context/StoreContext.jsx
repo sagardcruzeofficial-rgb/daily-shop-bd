@@ -215,11 +215,14 @@ export const StoreProvider = ({ children }) => {
 
   const addProduct = async (newProd) => {
     try {
-      const docRef = await addDoc(collection(db, 'products'), {
+      const productWithSupplier = {
         ...newProd,
+        supplierName: newProd.supplierName || 'General Supplier',
+        supplierUrl: newProd.supplierUrl || '',
         createdAt: new Date().toISOString()
-      });
-      setProducts((prev) => [{ ...newProd, id: docRef.id }, ...prev]);
+      };
+      const docRef = await addDoc(collection(db, 'products'), productWithSupplier);
+      setProducts((prev) => [{ ...productWithSupplier, id: docRef.id }, ...prev]);
     } catch (error) {
       console.error("Error adding product:", error);
     }
