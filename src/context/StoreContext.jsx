@@ -187,6 +187,18 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
+  // ✅ Supplier Delete Function Added Here
+  const deleteSupplierSource = async (supplierNameToDelete) => {
+    const updatedList = supplierList.filter(s => s !== supplierNameToDelete);
+    setSupplierList(updatedList);
+    try {
+      const supDocRef = doc(db, 'settings', 'suppliers');
+      await setDoc(supDocRef, { list: updatedList }, { merge: true });
+    } catch (error) {
+      console.error("Error deleting supplier:", error);
+    }
+  };
+
   const categories = categoryData.map(c => c.name);
 
   const addToCart = (product) => {
@@ -356,7 +368,7 @@ export const StoreProvider = ({ children }) => {
       addToCart, removeFromCart, clearCart, addProduct, deleteProduct,
       addOrder, deleteOrder, addFooterLink, deleteFooterLink,
       addCategory, deleteCategory, addSubCategory, deleteSubCategory,
-      toggleSelectItem, toggleSelectAll, supplierList, addSupplierSource
+      toggleSelectItem, toggleSelectAll, supplierList, addSupplierSource, deleteSupplierSource // ✅ Pass here
     }}>
       {children}
     </StoreContext.Provider>
