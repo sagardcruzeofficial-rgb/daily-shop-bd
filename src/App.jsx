@@ -10,7 +10,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Footer from './components/Footer';
 import { StoreContext } from './context/StoreContext';
-import { createProductSlug } from './utils/slugify'; // ফাংশন নাম সঠিক রাখা হলো
+import { createProductSlug } from './utils/slugify';
 
 const AdminAuthWrapper = ({ children }) => {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(
@@ -140,15 +140,29 @@ export default function App() {
     setSelectedProduct
   } = store;
 
-  // Handle URL Slug Routing for Direct Links & Facebook Share with PopState support
+  // Handle URL Slug Routing for Direct Links & Facebook Share matching /product/{slug}-{firestoreId}
   const [currentSlugProduct, setCurrentSlugProduct] = useState(null);
 
   useEffect(() => {
     const handleUrlChange = () => {
       const path = window.location.pathname;
-      if (path && path !== '/' && products.length > 0) {
-        const slug = path.replace(/^\/+/, '');
-        const matchedProd = products.find(p => createProductSlug(p.name || p.title) === slug);
+      
+      if (path && path.startsWith('/product/') && products.length > 0) {
+        const slugParam = path.replace('/product/', '');
+        let matchedProd = null;
+
+        // 1. Try matching by final Firestore ID (the part after the last hyphen)
+        const lastHyphenIndex = slugParam.lastIndexOf('-');
+        if (lastHyphenIndex !== -1) {
+          const firestoreId = slugParam.substring(lastHyphenIndex + 1);
+          matchedProd = products.find(p => p.id === firestoreId);
+        }
+
+        // 2. Fallback: match by full generated slug
+        if (!matchedProd) {
+          matchedProd = products.find(p => createProductSlug(p.name || p.title, p.id) === slugParam);
+        }
+
         if (matchedProd) {
           setCurrentSlugProduct(matchedProd);
           
