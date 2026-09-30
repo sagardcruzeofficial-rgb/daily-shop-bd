@@ -3,7 +3,6 @@ import Navbar from './components/Navbar';
 import CategorySidebar from './components/CategorySidebar';
 import HeroSlider from './components/HeroSlider';
 import ProductCard from './components/ProductCard';
-import ProductDetail from './components/ProductDetail';
 import ProductDetailModal from './components/ProductDetailModal';
 import AdminView from './components/AdminView';
 import CheckoutPage from './components/CheckoutPage';
@@ -193,10 +192,20 @@ export default function App() {
       <main className="flex-1">
         {currentSlugProduct ? (
           <div className="max-w-[1300px] mx-auto px-4 py-8">
-            <ProductDetail product={currentSlugProduct} onBack={() => {
-              window.history.pushState({}, '', '/');
-              setCurrentSlugProduct(null);
-            }} />
+            <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-800 shadow-xl flex flex-col md:flex-row gap-6 items-center">
+              <img src={currentSlugProduct.image} alt={currentSlugProduct.name} className="max-h-80 object-contain rounded-xl" />
+              <div className="space-y-4">
+                <h1 className="text-2xl font-black text-gray-900 dark:text-gray-100">{currentSlugProduct.name}</h1>
+                <p className="text-xl font-bold text-[#f57224]">৳{currentSlugProduct.price}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">{currentSlugProduct.description}</p>
+                <button 
+                  onClick={() => setSelectedProduct(currentSlugProduct)}
+                  className="bg-[#f57224] hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-bold text-xs transition shadow-lg cursor-pointer"
+                >
+                  Buy Now / Order
+                </button>
+              </div>
+            </div>
           </div>
         ) : activeTab === 'Checkout' ? (
           <CheckoutPage />
@@ -306,7 +315,7 @@ export default function App() {
                   <h3 className="font-bold text-gray-800 dark:text-gray-200 text-sm mb-1">🚀 Fast Delivery</h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400">Quick order processing and reliable delivery across Bangladesh.</p>
                 </div>
-                <div className="bg-orange-50 dark:bg-gray-800/80 p-4 rounded-xl border-2 border-orange-100 dark:border-gray-700">
+                <div className="bg-orange-50 dark:bg-gray-800/80 p-4 rounded-xl border-2 border-gray-100 dark:border-gray-700">
                   <h3 className="font-bold text-gray-800 dark:text-gray-200 text-sm mb-1">💯 Quality Assurance</h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400">We carefully curate and inspect every item before shipping.</p>
                 </div>
