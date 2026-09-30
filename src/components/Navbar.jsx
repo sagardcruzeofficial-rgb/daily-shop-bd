@@ -65,20 +65,32 @@ export default function Navbar() {
         {/* Main Header */}
         <div className="max-w-[1300px] mx-auto px-6 py-3 flex items-center justify-between gap-6">
           
-          {/* Logo */}
+          {/* Updated Logo Design */}
           <div 
             onClick={() => {
               setActiveTab('Home');
               setSearchQuery('');
             }} 
-            className="cursor-pointer flex items-center gap-2.5 select-none group"
+            className="cursor-pointer flex items-center gap-3 select-none group"
           >
-            <div className="w-10 h-10 bg-[#f57224] rounded-xl flex items-center justify-center text-white font-black text-2xl border-2 border-orange-400 shadow-[0_4px_12px_rgba(245,114,36,0.4)] group-hover:scale-105 transition-transform">
-              D
+            {/* Red Shopping Cart Icon */}
+            <div className="text-[#f57224] transform group-hover:scale-110 transition-transform">
+              <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.60 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+              </svg>
             </div>
-            <span className="text-2xl font-black text-[#f57224] tracking-tight">
-              DailyShop<span className="text-gray-900 dark:text-gray-100">BD</span>
-            </span>
+
+            {/* Brand Name & Tagline */}
+            <div className="flex flex-col">
+              <div className="text-xl md:text-2xl font-black tracking-tight flex items-center">
+                <span className="text-gray-900 dark:text-gray-100">Daily</span>
+                <span className="text-[#f57224] mx-0.5">Shop</span>
+                <span className="text-gray-900 dark:text-gray-100">BD</span>
+              </div>
+              <span className="text-[9px] text-gray-500 dark:text-gray-400 font-semibold tracking-wide">
+                Your Trusted Online Shopping Partner
+              </span>
+            </div>
           </div>
 
           {/* Search Bar */}
