@@ -38,6 +38,9 @@ export const StoreProvider = ({ children }) => {
   const [categoryData, setCategoryData] = useState(defaultCategoryData);
   const [supplierList, setSupplierList] = useState(['Daraz', 'AliExpress', 'Alibaba', 'Local Wholesale']);
 
+  // 💬 Live Chat State Added
+  const [chats, setChats] = useState([]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSubCategory, setSelectedSubCategory] = useState('All');
@@ -62,7 +65,7 @@ export const StoreProvider = ({ children }) => {
   
   const isInitialSync = useRef(true);
 
-  // Fetch initial products, orders, categories & suppliers from Firebase
+  // Fetch initial products, orders, categories, suppliers & chats from Firebase
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -76,6 +79,13 @@ export const StoreProvider = ({ children }) => {
         if (!orderSnap.empty) {
           const orderList = orderSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           setOrders(orderList);
+        }
+
+        // 💬 Fetch Chats from Firebase
+        const chatSnap = await getDocs(collection(db, 'chats'));
+        if (!chatSnap.empty) {
+          const chatList = chatSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setChats(chatList);
         }
 
         const catDocRef = doc(db, 'settings', 'categories');
@@ -187,7 +197,6 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
-  // ✅ Supplier Delete Function Added Here
   const deleteSupplierSource = async (supplierNameToDelete) => {
     const updatedList = supplierList.filter(s => s !== supplierNameToDelete);
     setSupplierList(updatedList);
@@ -196,6 +205,62 @@ export const StoreProvider = ({ children }) => {
       await setDoc(supDocRef, { list: updatedList }, { merge: true });
     } catch (error) {
       console.error("Error deleting supplier:", error);
+    }
+  };
+
+  // 💬 Live Chat Management Functions Added Here
+  const addChatSession = async (customerName, phone, initialMessage) => {
+    try {
+      const newChatData = {
+        customerName,
+        phone,
+        messages: [
+          { sender: 'customer', text: initialMessage, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+        ],
+        createdAt: new Date().toISOString()
+      };
+      const docRef = await addDoc(collection(db, 'chats'), newChatData);
+      const createdChat = { id: docRef.id, ...newChatData };
+      setChats(prev => [...prev, createdChat]);
+      return docRef.id;
+    } catch (error) {
+      console.error("Error adding chat session:", error);
+      return null;
+    }
+  };
+
+  const sendChatMessage = async (chatId, sender, text) => {
+    try {
+      const newMessage = { 
+        sender, 
+        text, 
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+      };
+
+      let updatedMessages = [];
+      setChats(prevChats => {
+        return prevChats.map(c => {
+          if (c.id === chatId) {
+            updatedMessages = [...(c.messages || []), newMessage];
+            return { ...c, messages: updatedMessages };
+          }
+          return c;
+        });
+      });
+
+      const chatRef = doc(db, 'chats', chatId);
+      await updateDoc(chatRef, { messages: updatedMessages });
+    } catch (error) {
+      console.error("Error sending chat message:", error);
+    }
+  };
+
+  const deleteChat = async (chatId) => {
+    setChats(prev => prev.filter(c => c.id !== chatId));
+    try {
+      await deleteDoc(doc(db, 'chats', chatId));
+    } catch (error) {
+      console.error("Error deleting chat:", error);
     }
   };
 
@@ -368,7 +433,8 @@ export const StoreProvider = ({ children }) => {
       addToCart, removeFromCart, clearCart, addProduct, deleteProduct,
       addOrder, deleteOrder, addFooterLink, deleteFooterLink,
       addCategory, deleteCategory, addSubCategory, deleteSubCategory,
-      toggleSelectItem, toggleSelectAll, supplierList, addSupplierSource, deleteSupplierSource // ✅ Pass here
+      toggleSelectItem, toggleSelectAll, supplierList, addSupplierSource, deleteSupplierSource,
+      chats, addChatSession, sendChatMessage, deleteChat // ✅ Passed Chat items here
     }}>
       {children}
     </StoreContext.Provider>
