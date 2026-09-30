@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { StoreContext } from '../context/StoreContext';
-import { createProductSlug } from '../utils/slugify'; // ফাংশন নাম সঠিক রাখা হলো
+import { createProductSlug } from '../utils/slugify'; 
 
 export default function ProductCard({ product }) {
   const { addToCart, setSelectedProduct, startCheckout } = useContext(StoreContext);
@@ -11,10 +11,10 @@ export default function ProductCard({ product }) {
     e.preventDefault();
     const slug = createProductSlug(product.name || product.title);
     
-    // URL আপডেট করার পাশাপাশি রিয়্যাক্ট স্টেট বা উইন্ডো ইভেন্ট ট্রিগার করা দরকার
+    // URL আপডেট করার পাশাপাশি রিয়্যাক্ট স্টেট বা উইন্ডো ইভেন্ট ট্রিগার করা দরকার
     window.history.pushState({ slug }, '', `/${slug}`);
     
-    // ব্রাউজার ব্যাক/ফরোয়ার্ড (popstate) হ্যান্ডেল করার জন্য উইন্ডোতে ইভেন্ট ডিসপ্যাচ করা যেতে পারে 
+    // ব্রাউজার ব্যাক/ফরোয়ার্ড (popstate) হ্যান্ডেল করার জন্য উইন্ডোতে ইভেন্ট ডিসপ্যাচ করা যেতে পারে 
     // অথবা সরাসরি App.js / Router লেভেলে এটি হ্যান্ডেল করতে হবে
     window.dispatchEvent(new PopStateEvent('popstate', { state: { slug } }));
 
