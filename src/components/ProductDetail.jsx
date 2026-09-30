@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import { StoreContext } from '../context/StoreContext';
 
 export default function ProductDetail({ product, onBack }) {
-  const { addOrder } = useContext(StoreContext);
+  const { addOrder, addToCart, startCheckout } = useContext(StoreContext);
   const [selectedSize, setSelectedSize] = useState(product?.sizes?.[0] || 'Standard');
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
@@ -17,7 +17,7 @@ export default function ProductDetail({ product, onBack }) {
     e.preventDefault();
 
     if ((paymentMethod === 'bkash' || paymentMethod === 'nagad' || paymentMethod === 'rocket') && (!trxId || !senderPhone)) {
-      alert('Anugraho kore Sender Mobile Number ebong Transaction ID (TrxID) prodan korun.');
+      alert('অনুগ্রহ করে সেন্ডার মোবাইল নম্বর এবং ট্রানজেকশন আইডি (TrxID) প্রদান করুন।');
       return;
     }
 
@@ -25,7 +25,7 @@ export default function ProductDetail({ product, onBack }) {
       productTitle: product.title || product.name,
       price: product.price,
       size: selectedSize,
-      supplierName: product.supplierName || 'DropShop',
+      supplierName: product.supplierName || 'Daraz',
       supplierUrl: product.supplierUrl || '',
       customerName,
       phone,
@@ -34,13 +34,14 @@ export default function ProductDetail({ product, onBack }) {
       trxId: paymentMethod !== 'cod' ? trxId : 'N/A',
       senderPhone: paymentMethod !== 'cod' ? senderPhone : 'N/A'
     };
+
     addOrder(newOrder);
 
     const whatsappMsg = `🛍️ *NEW ORDER CONFIRMED - DailyShopBD*\n\n` +
       `*Product:* ${product.title || product.name}\n` +
       `*Price:* ৳${product.price}\n` +
       `*Size:* ${selectedSize}\n` +
-      `*Supplier:* ${product.supplierName || 'DropShop'}\n` +
+      `*Supplier:* ${product.supplierName || 'Daraz'}\n` +
       `*Payment Method:* ${paymentMethod.toUpperCase()}\n` +
       (paymentMethod !== 'cod' ? `*Sender Mobile:* ${senderPhone}\n*TrxID:* ${trxId}\n` : '') +
       `\n👤 *Customer Details:*\n` +
@@ -50,13 +51,18 @@ export default function ProductDetail({ product, onBack }) {
 
     const whatsappUrl = `https://wa.me/8801705507447?text=${encodeURIComponent(whatsappMsg)}`;
     
-    alert('Order safolvabe somponno hoyeche! WhatsApp-e redirect kora hocche.');
+    alert('অর্ডার সফলভাবে সম্পন্ন হয়েছে! WhatsApp-এ রিডাইরেক্ট করা হচ্ছে।');
     window.open(whatsappUrl, '_blank');
     if (onBack) onBack();
   };
 
+  const handleAddToCart = () => {
+    addToCart({ ...product, selectedSize });
+    alert('কার্টে সফলভাবে প্রোডাক্টটি যোগ করা হয়েছে!');
+  };
+
   return (
-    <div className="bg-white dark:bg-gray-900 p-6 md:p-8 rounded-2xl border-2 border-gray-200 dark:border-gray-800 shadow-sm max-w-4xl mx-auto">
+    <div className="bg-white dark:bg-gray-900 p-6 md:p-8 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm max-w-4xl mx-auto">
       {onBack && (
         <button 
           onClick={onBack}
@@ -74,13 +80,13 @@ export default function ProductDetail({ product, onBack }) {
         <div className="space-y-4">
           <div>
             <span className="bg-orange-100 dark:bg-orange-950 text-[#f57224] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">
-              {product.category}
+              {product.category || 'General'}
             </span>
             <h1 className="text-xl md:text-2xl font-black text-gray-900 dark:text-gray-100 mt-2">
               {product.title || product.name}
             </h1>
             <p className="text-xs text-orange-600 dark:text-orange-400 font-semibold mt-1">
-              Supplier: {product.supplierName || 'DropShop'}
+              Supplier: {product.supplierName || 'Daraz'}
             </p>
           </div>
 
@@ -112,6 +118,16 @@ export default function ProductDetail({ product, onBack }) {
               </div>
             </div>
           )}
+
+          <div className="flex gap-2 pt-2">
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className="flex-1 bg-gray-900 dark:bg-gray-800 hover:bg-gray-800 text-white py-2.5 rounded-xl font-bold text-xs transition cursor-pointer"
+            >
+              Add to Cart
+            </button>
+          </div>
 
           {/* Order Form */}
           <form onSubmit={handleOrderSubmit} className="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
