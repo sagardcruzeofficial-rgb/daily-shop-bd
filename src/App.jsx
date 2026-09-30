@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import CategorySidebar from './components/CategorySidebar';
 import HeroSlider from './components/HeroSlider';
 import ProductCard from './components/ProductCard';
+import ProductDetail from './components/ProductDetail';
 import ProductDetailModal from './components/ProductDetailModal';
 import AdminView from './components/AdminView';
 import CheckoutPage from './components/CheckoutPage';
@@ -10,6 +11,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Footer from './components/Footer';
 import { StoreContext } from './context/StoreContext';
+import { generateSlug } from './utils/slugify';
 
 const AdminAuthWrapper = ({ children }) => {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(
@@ -135,8 +137,36 @@ export default function App() {
     setSelectedCategory, 
     selectedSubCategory = 'All', 
     setSelectedSubCategory, 
-    activeTab = 'Home' 
+    activeTab = 'Home',
+    setSelectedProduct
   } = store;
+
+  // Handle URL Slug Routing for Direct Links & Facebook Share
+  const [currentSlugProduct, setCurrentSlugProduct] = useState(null);
+
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path && path !== '/' && products.length > 0) {
+      const slug = path.replace(/^\/+/, '');
+      const matchedProd = products.find(p => generateSlug(p.name) === slug);
+      if (matchedProd) {
+        setCurrentSlugProduct(matchedProd);
+        // Update Facebook OpenGraph / Meta tags dynamically for automation sharing
+        document.title = `${matchedProd.name} | DailyShopBD`;
+        
+        let metaOgTitle = document.querySelector("meta[property='og:title']");
+        if (metaOgTitle) metaOgTitle.setAttribute("content", matchedProd.name);
+
+        let metaOgDesc = document.querySelector("meta[property='og:description']");
+        if (metaOgDesc) metaOgDesc.setAttribute("content", matchedProd.description || "Best price in Bangladesh at DailyShopBD.");
+
+        let metaOgImage = document.querySelector("meta[property='og:image']");
+        if (metaOgImage && matchedProd.image) metaOgImage.setAttribute("content", matchedProd.image);
+      }
+    } else {
+      setCurrentSlugProduct(null);
+    }
+  }, [products]);
 
   const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
@@ -161,7 +191,14 @@ export default function App() {
       <Navbar />
 
       <main className="flex-1">
-        {activeTab === 'Checkout' ? (
+        {currentSlugProduct ? (
+          <div className="max-w-[1300px] mx-auto px-4 py-8">
+            <ProductDetail product={currentSlugProduct} onBack={() => {
+              window.history.pushState({}, '', '/');
+              setCurrentSlugProduct(null);
+            }} />
+          </div>
+        ) : activeTab === 'Checkout' ? (
           <CheckoutPage />
         ) : activeTab === 'Login' ? (
           <div className="py-10"><Login /></div>
