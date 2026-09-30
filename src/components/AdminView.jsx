@@ -3,19 +3,22 @@ import { StoreContext } from '../context/StoreContext';
 
 export default function AdminView() {
   const { 
-    products, addProduct, deleteProduct, 
+    products, addProduct, updateProduct, deleteProduct, 
     orders, deleteOrder, 
     footerLinks = [], addFooterLink, deleteFooterLink,
     categoryData = [], addCategory, deleteCategory, addSubCategory, deleteSubCategory,
     supplierList = [], addSupplierSource, deleteSupplierSource 
   } = useContext(StoreContext);
   
+  // Form States & Editing States
+  const [editingProductId, setEditingProductId] = useState(null); // Edit মোডের জন্য প্রডাক্ট আইডি
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
+  const [sku, setSku] = useState('');
   
   // Image Input States
   const [imageInputType, setImageInputType] = useState('url'); // 'url' অথবা 'file'
-  const [image, setImage] = useState(''); // ফাইনাল ইমেজ লিংক বা বেস৬৪ (Base64)
+  const [image, setImage] = useState(''); 
 
   const [selectedCat, setSelectedCat] = useState('');
   const [selectedSubCat, setSelectedSubCat] = useState('');
@@ -121,6 +124,37 @@ export default function AdminView() {
     }
   };
 
+  // ✏️ Load Product Data into Form for Editing
+  const handleEditClick = (product) => {
+    setEditingProductId(product.id);
+    setTitle(product.title || '');
+    setPrice(product.price ? product.price.toString() : '');
+    setSku(product.sku || '');
+    setImage(product.image || '');
+    if (product.category) setSelectedCat(product.category);
+    if (product.subCategory) setSelectedSubCat(product.subCategory);
+    setDescription(product.description || '');
+    setSupplierUrl(product.supplierUrl || '');
+    if (product.supplierName) setSupplierName(product.supplierName);
+    if (product.sizes) {
+      setSizesInput(Array.isArray(product.sizes) ? product.sizes.join(', ') : product.sizes);
+    }
+    // Scroll smoothly to the form
+    window.scrollTo({ top: 400, behavior: 'smooth' });
+  };
+
+  // Cancel Edit Mode
+  const handleCancelEdit = () => {
+    setEditingProductId(null);
+    setTitle('');
+    setPrice('');
+    setSku('');
+    setImage('');
+    setDescription('');
+    setSupplierUrl('');
+    setSizesInput('M, L, XL, XXL');
+  };
+
   const handleProductSubmit = (e) => {
     e.preventDefault();
 
@@ -128,9 +162,10 @@ export default function AdminView() {
       ? sizesInput.split(',').map(s => s.trim()).filter(Boolean)
       : ['Standard'];
 
-    addProduct({ 
+    const productData = { 
       title, 
       price: Number(price), 
+      sku: sku.trim() || 'N/A', 
       image, 
       category: selectedCat || (categoryData[0] && categoryData[0].name) || 'Fashion', 
       subCategory: selectedSubCat,
@@ -138,10 +173,25 @@ export default function AdminView() {
       sizes: parsedSizes,
       supplierName: supplierName || 'DropShop', 
       supplierUrl: supplierUrl.trim() 
-    });
+    };
 
-    setTitle(''); setPrice(''); setImage(''); setDescription(''); setSupplierUrl(''); setSizesInput('M, L, XL, XXL');
-    alert('Product Published Successfully with Supplier Tracker!');
+    if (editingProductId) {
+      // Update Existing Product
+      if (typeof updateProduct === 'function') {
+        updateProduct(editingProductId, productData);
+      } else {
+        // Fallback if updateProduct context method isn't wired yet
+        console.warn('updateProduct function missing in StoreContext, adding as new or check context');
+      }
+      alert('Product Updated Successfully!');
+      setEditingProductId(null);
+    } else {
+      // Add New Product
+      addProduct(productData);
+      alert('Product Published Successfully with SKU Code & Supplier Tracker!');
+    }
+
+    setTitle(''); setPrice(''); setSku(''); setImage(''); setDescription(''); setSupplierUrl(''); setSizesInput('M, L, XL, XXL');
   };
 
   const handleAddCategorySubmit = (e) => {
@@ -179,7 +229,7 @@ export default function AdminView() {
       <div className="bg-gray-900 text-white p-6 rounded-2xl mb-8 flex flex-col md:flex-row justify-between items-center shadow-lg gap-4">
         <div>
           <h2 className="text-2xl font-black text-orange-500">DailyShop BD - Master Admin Panel</h2>
-          <p className="text-xs text-gray-400">Manage products, sub-categories, multi-suppliers, orders & footer links.</p>
+          <p className="text-xs text-gray-400">Manage products, SKU codes, edit items, sub-categories, multi-suppliers, orders & footer links.</p>
         </div>
         
         <div className="flex items-center gap-3">
@@ -197,7 +247,7 @@ export default function AdminView() {
         </div>
       </div>
 
-      {/* 1. Customer Orders with Supplier Tracker & Payment Info */}
+      {/* 1. Customer Orders with SKU Code & Supplier Tracker */}
       <div className="bg-white p-6 rounded-2xl shadow border border-gray-200 mb-8">
         <h3 className="font-bold text-gray-800 text-base mb-4 border-b pb-2">📦 Customer Website Orders ({orders ? orders.length : 0})</h3>
         {!orders || orders.length === 0 ? (
@@ -208,7 +258,7 @@ export default function AdminView() {
               <thead>
                 <tr className="bg-gray-100 text-gray-700">
                   <th className="p-2 border">Date</th>
-                  <th className="p-2 border">Product & Supplier Info</th>
+                  <th className="p-2 border">Product, SKU & Supplier</th>
                   <th className="p-2 border">Price</th>
                   <th className="p-2 border">Payment Details</th>
                   <th className="p-2 border">Customer</th>
@@ -222,12 +272,18 @@ export default function AdminView() {
                   const matchedProduct = products.find(p => p.title === ord.productTitle);
                   const supName = ord.supplierName || (matchedProduct ? matchedProduct.supplierName : 'DropShop');
                   const supUrl = ord.supplierUrl || (matchedProduct ? matchedProduct.supplierUrl : '');
+                  const productSku = ord.sku || (matchedProduct ? matchedProduct.sku : 'N/A');
 
                   return (
                     <tr key={ord.id} className="border-b hover:bg-gray-50">
                       <td className="p-2 border text-gray-500">{ord.date}</td>
                       <td className="p-2 border">
                         <p className="font-bold text-gray-800">{ord.productTitle} ({ord.size})</p>
+                        <div className="mt-1 space-y-1">
+                          <span className="inline-block bg-blue-50 text-blue-800 font-mono font-bold px-1.5 py-0.5 rounded border border-blue-200 text-[10px]">
+                            🏷️ SKU: {productSku}
+                          </span>
+                        </div>
                         <div className="mt-1 bg-orange-50 p-1.5 rounded border border-orange-200 inline-block">
                           <span className="text-[10px] font-bold text-orange-800">📦 Supplier: {supName}</span>
                           {supUrl ? (
@@ -275,12 +331,30 @@ export default function AdminView() {
       {/* 2. Management Forms Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         
-        {/* Publish Product Form */}
-        <div className="bg-white p-5 rounded-2xl shadow border border-gray-200">
-          <h3 className="font-bold text-gray-800 mb-3 border-b pb-2 text-sm">➕ Publish New Product</h3>
+        {/* Publish / Edit Product Form */}
+        <div className={`bg-white p-5 rounded-2xl shadow border ${editingProductId ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'}`}>
+          <div className="flex justify-between items-center mb-3 border-b pb-2">
+            <h3 className="font-bold text-gray-800 text-sm">
+              {editingProductId ? '✏️ Edit Product' : '➕ Publish New Product'}
+            </h3>
+            {editingProductId && (
+              <button 
+                type="button" 
+                onClick={handleCancelEdit} 
+                className="text-[10px] bg-gray-200 hover:bg-gray-300 font-bold px-2 py-0.5 rounded text-gray-700"
+              >
+                Cancel Edit
+              </button>
+            )}
+          </div>
+
           <form onSubmit={handleProductSubmit} className="space-y-3">
             <input type="text" placeholder="Product Title" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full border p-2 text-xs rounded" />
-            <input type="number" placeholder="Price BDT" value={price} onChange={(e) => setPrice(e.target.value)} required className="w-full border p-2 text-xs rounded" />
+            
+            <div className="flex gap-2">
+              <input type="number" placeholder="Price BDT" value={price} onChange={(e) => setPrice(e.target.value)} required className="w-1/2 border p-2 text-xs rounded" />
+              <input type="text" placeholder="SKU Code" value={sku} onChange={(e) => setSku(e.target.value)} className="w-1/2 border p-2 text-xs rounded font-mono font-bold bg-blue-50/50 border-blue-200" />
+            </div>
             
             {/* Image Input Section (URL or File Upload) */}
             <div className="space-y-1.5">
@@ -430,7 +504,12 @@ export default function AdminView() {
             />
 
             <textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} required className="w-full border p-2 text-xs rounded" rows={3}></textarea>
-            <button className="w-full bg-[#f57224] text-white font-bold py-2 rounded text-xs hover:bg-orange-600 transition shadow">Publish Product</button>
+            
+            <button className={`w-full font-bold py-2 rounded text-xs text-white transition shadow ${
+              editingProductId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[#f57224] hover:bg-orange-600'
+            }`}>
+              {editingProductId ? '💾 Update Product' : 'Publish Product'}
+            </button>
           </form>
         </div>
 
@@ -504,17 +583,31 @@ export default function AdminView() {
           </div>
         </div>
 
-        {/* Manage & Delete Products Section */}
+        {/* Manage, Edit & Delete Products Section */}
         <div className="bg-white p-5 rounded-2xl shadow border border-gray-200">
           <h3 className="font-bold text-gray-800 mb-3 border-b pb-2 text-sm">🗑️ Manage Products ({products.length})</h3>
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {products.map((p) => (
-              <div key={p.id} className="flex flex-col bg-gray-50 p-2 rounded border space-y-1">
+              <div key={p.id} className="flex flex-col bg-gray-50 p-2 rounded border space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold truncate max-w-[140px] text-gray-700">{p.title}</span>
-                  <button onClick={() => deleteProduct(p.id)} className="bg-red-500 hover:bg-red-600 text-white px-2 py-0.5 text-[10px] rounded transition">Delete</button>
+                  <span className="text-xs font-bold truncate max-w-[130px] text-gray-700">{p.title}</span>
+                  <div className="flex gap-1">
+                    <button 
+                      onClick={() => handleEditClick(p)} 
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 text-[10px] rounded font-bold transition"
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      onClick={() => deleteProduct(p.id)} 
+                      className="bg-red-500 hover:bg-red-600 text-white px-2 py-0.5 text-[10px] rounded transition"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
                 <div className="text-[10px] text-gray-500 flex flex-col gap-0.5">
+                  <span><strong>SKU:</strong> <span className="text-blue-700 font-mono font-bold">{p.sku || 'N/A'}</span></span>
                   <span><strong>Supplier:</strong> <span className="text-orange-600 font-bold">{p.supplierName || 'DropShop'}</span></span>
                   <span><strong>Sizes:</strong> {Array.isArray(p.sizes) ? p.sizes.join(', ') : 'Standard'}</span>
                   {p.supplierUrl ? (
