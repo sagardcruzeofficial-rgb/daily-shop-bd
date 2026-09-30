@@ -38,10 +38,10 @@ export default function Home() {
     <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '16px' }} className="font-sans bg-gray-100 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-300">
       
       {/* মেইন লেআউট Container */}
-      <div style={{ display: 'flex', flexDirection: 'row', gap: '24px', alignItems: 'flex-start' }} className="flex-col md:flex-row">
+      <div className="flex flex-col md:flex-row gap-6 items-start">
         
-        {/* ==================== ১. বাম পাশের ক্যাটাগরি সাইডবার (3D & Premium Border) ==================== */}
-        <div style={{ width: '250px', flexShrink: 0 }} className="w-full md:w-64">
+        {/* ==================== ১. বাম পাশের ক্যাটাগরি সাইডবার ==================== */}
+        <div className="w-full md:w-64 shrink-0">
           <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl border-2 border-gray-200 dark:border-gray-800 shadow-[0_8px_20px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.4)] sticky top-4 transition-all duration-300">
             <h2 className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 pb-1 border-b border-gray-100 dark:border-gray-800">
               Categories
@@ -84,7 +84,7 @@ export default function Home() {
                     <span className="text-sm font-black">›</span>
                   </button>
 
-                  {/* Subcategories (3D Indented Box) */}
+                  {/* Subcategories */}
                   {selectedCategory === cat.name && currentSubCategories.length > 0 && (
                     <div className="ml-3 my-1 pl-2.5 border-l-2 border-[#f57224] bg-gray-50/80 dark:bg-gray-950/50 p-2 rounded-r-xl border-y border-r border-gray-200/60 dark:border-gray-800 flex flex-col gap-1.5 shadow-inner">
                       <button
@@ -121,9 +121,9 @@ export default function Home() {
         </div>
 
         {/* ==================== ২. ডান পাশের ব্যানার ও প্রোডাক্ট গ্রিড ==================== */}
-        <div style={{ flex: 1, width: '100%' }} className="space-y-6">
+        <div className="flex-1 w-full space-y-6">
           
-          {/* ব্যানার ও স্লাইডার ফ্রেম (3D Layered Look) */}
+          {/* ব্যানার ও স্লাইডার ফ্রেম */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             
             {/* মেইন সুপারশপ ব্যানার */}
@@ -173,7 +173,7 @@ export default function Home() {
               </div>
 
               {/* প্রোমো ব্যানার */}
-              <div className="relative rounded-xl overflow-hidden shadow-[0_6px_15px_rgba(0,0,0,0.1)] dark:shadow-[0_6px_15px_rgba(0,0,0,0.4)] h-24 border-2 border-gray-200 dark:border-gray-800 group bg-gray-100 dark:bg-gray-855 hover:border-[#f57224] transition-all">
+              <div className="relative rounded-xl overflow-hidden shadow-[0_6px_15px_rgba(0,0,0,0.1)] dark:shadow-[0_6px_15px_rgba(0,0,0,0.4)] h-24 border-2 border-gray-200 dark:border-gray-800 group bg-gray-100 dark:bg-gray-800 hover:border-[#f57224] transition-all">
                 <img
                   src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=400&q=80"
                   alt="Promo Banner"
