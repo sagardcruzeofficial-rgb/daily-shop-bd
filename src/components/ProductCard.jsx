@@ -1,18 +1,30 @@
 import React, { useContext } from 'react';
 import { StoreContext } from '../context/StoreContext';
+import { generateSlug } from '../utils/slugify';
 
 export default function ProductCard({ product }) {
   const { addToCart, setSelectedProduct, startCheckout } = useContext(StoreContext);
 
   if (!product) return null;
 
+  const handleProductClick = (e) => {
+    e.preventDefault();
+    const slug = generateSlug(product.name || product.title);
+    window.history.pushState({}, '', `/${slug}`);
+    // If setSelectedProduct triggers modal, we can also dispatch or update state if needed, 
+    // but App.jsx will catch pathname slug and display ProductDetail directly.
+    if (setSelectedProduct) {
+      setSelectedProduct(product);
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden shadow-[0_6px_16px_rgba(0,0,0,0.04)] dark:shadow-[0_6px_16px_rgba(0,0,0,0.3)] hover:border-[#f57224] dark:hover:border-[#f57224] hover:shadow-[0_10px_24px_rgba(245,114,36,0.15)] transition-all duration-300 flex flex-col justify-between group">
-      <div className="cursor-pointer relative overflow-hidden" onClick={() => setSelectedProduct && setSelectedProduct(product)}>
+      <div className="cursor-pointer relative overflow-hidden" onClick={handleProductClick}>
         <div className="relative w-full h-44 bg-gray-100 dark:bg-gray-800 overflow-hidden">
           <img 
             src={product.image} 
-            alt={product.title} 
+            alt={product.title || product.name} 
             className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
           />
         </div>
@@ -29,7 +41,7 @@ export default function ProductCard({ product }) {
             {product.category}
           </span>
           <h3 className="text-xs font-bold text-gray-800 dark:text-gray-200 line-clamp-1 group-hover:text-[#f57224] transition">
-            {product.title}
+            {product.title || product.name}
           </h3>
           <p className="text-sm font-black text-[#f57224] mt-1">৳{product.price}</p>
         </div>
