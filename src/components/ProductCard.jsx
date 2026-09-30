@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { StoreContext } from '../context/StoreContext';
-import { generateSlug } from '../utils/slugify';
+import { createProductSlug } from '../utils/slugify'; // ফাংশন নাম সঠিক রাখা হলো
 
 export default function ProductCard({ product }) {
   const { addToCart, setSelectedProduct, startCheckout } = useContext(StoreContext);
@@ -9,10 +9,15 @@ export default function ProductCard({ product }) {
 
   const handleProductClick = (e) => {
     e.preventDefault();
-    const slug = generateSlug(product.name || product.title);
-    window.history.pushState({}, '', `/${slug}`);
-    // If setSelectedProduct triggers modal, we can also dispatch or update state if needed, 
-    // but App.jsx will catch pathname slug and display ProductDetail directly.
+    const slug = createProductSlug(product.name || product.title);
+    
+    // URL আপডেট করার পাশাপাশি রিয়্যাক্ট স্টেট বা উইন্ডো ইভেন্ট ট্রিগার করা দরকার
+    window.history.pushState({ slug }, '', `/${slug}`);
+    
+    // ব্রাউজার ব্যাক/ফরোয়ার্ড (popstate) হ্যান্ডেল করার জন্য উইন্ডোতে ইভেন্ট ডিসপ্যাচ করা যেতে পারে 
+    // অথবা সরাসরি App.js / Router লেভেলে এটি হ্যান্ডেল করতে হবে
+    window.dispatchEvent(new PopStateEvent('popstate', { state: { slug } }));
+
     if (setSelectedProduct) {
       setSelectedProduct(product);
     }
@@ -29,7 +34,6 @@ export default function ProductCard({ product }) {
           />
         </div>
         
-        {/* Sub-Category Badge */}
         {product.subCategory && (
           <span className="absolute top-2.5 left-2.5 bg-black/80 text-white text-[9px] px-2.5 py-1 rounded-full font-bold backdrop-blur-md border border-white/10 shadow-sm">
             {product.subCategory}
