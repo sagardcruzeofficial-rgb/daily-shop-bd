@@ -25,7 +25,7 @@ export default function ProductDetailModal() {
     e.preventDefault();
 
     if ((paymentMethod === 'bkash' || paymentMethod === 'nagad' || paymentMethod === 'rocket') && (!trxId || !senderPhone)) {
-      alert('Anugraho kore Sender Mobile Number ebong Transaction ID (TrxID) prodan korun.');
+      alert('অনুগ্রহ করে সেন্ডার মোবাইল নম্বর এবং ট্রানজেকশন আইডি (TrxID) প্রদান করুন।');
       return;
     }
 
@@ -62,7 +62,7 @@ export default function ProductDetailModal() {
 
     const whatsappUrl = `https://wa.me/8801705507447?text=${encodeURIComponent(whatsappMsg)}`;
     
-    alert('Order safolvabe somponno hoyeche! WhatsApp-e redirect kora hocche.');
+    alert('অর্ডার সফলভাবে সম্পন্ন হয়েছে! WhatsApp-এ রিডাইরেক্ট করা হচ্ছে।');
     window.open(whatsappUrl, '_blank');
     
     // Reset Modal
