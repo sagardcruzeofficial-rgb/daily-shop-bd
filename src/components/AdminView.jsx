@@ -12,7 +12,11 @@ export default function AdminView() {
   
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
-  const [image, setImage] = useState('');
+  
+  // Image Input States
+  const [imageInputType, setImageInputType] = useState('url'); // 'url' অথবা 'file'
+  const [image, setImage] = useState(''); // ফাইনাল ইমেজ লিংক বা বেস৬৪ (Base64)
+
   const [selectedCat, setSelectedCat] = useState('');
   const [selectedSubCat, setSelectedSubCat] = useState('');
   const [description, setDescription] = useState('');
@@ -44,6 +48,18 @@ export default function AdminView() {
       setSupplierName(supplierList[0]);
     }
   }, [supplierList]);
+
+  // Handle Image File Upload (PC/Mobile)
+  const handleImageFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result); // Base64 string
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // 🔄 Check Stock & Auto Fetch Sizes via API
   const handleCheckStock = async () => {
@@ -265,8 +281,58 @@ export default function AdminView() {
           <form onSubmit={handleProductSubmit} className="space-y-3">
             <input type="text" placeholder="Product Title" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full border p-2 text-xs rounded" />
             <input type="number" placeholder="Price BDT" value={price} onChange={(e) => setPrice(e.target.value)} required className="w-full border p-2 text-xs rounded" />
-            <input type="text" placeholder="Image URL" value={image} onChange={(e) => setImage(e.target.value)} required className="w-full border p-2 text-xs rounded" />
             
+            {/* Image Input Section (URL or File Upload) */}
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-bold text-gray-600">Product Image Source:</label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setImageInputType('url')}
+                  className={`flex-1 py-1 text-[10px] font-bold rounded border transition ${
+                    imageInputType === 'url' ? 'bg-orange-500 text-white border-orange-600' : 'bg-gray-100 text-gray-600 border-gray-300'
+                  }`}
+                >
+                  🔗 Image Link
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setImageInputType('file')}
+                  className={`flex-1 py-1 text-[10px] font-bold rounded border transition ${
+                    imageInputType === 'file' ? 'bg-orange-500 text-white border-orange-600' : 'bg-gray-100 text-gray-600 border-gray-300'
+                  }`}
+                >
+                  📁 Upload File
+                </button>
+              </div>
+
+              {imageInputType === 'url' ? (
+                <input 
+                  type="url" 
+                  placeholder="https://example.com/image.jpg" 
+                  value={image.startsWith('data:') ? '' : image} 
+                  onChange={(e) => setImage(e.target.value)} 
+                  required 
+                  className="w-full border p-2 text-xs rounded" 
+                />
+              ) : (
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleImageFileChange} 
+                  required={!image} 
+                  className="w-full border p-1 text-[11px] rounded bg-gray-50 cursor-pointer file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-bold file:bg-orange-500 file:text-white" 
+                />
+              )}
+
+              {image && (
+                <div className="flex items-center gap-2 mt-1">
+                  <img src={image} alt="Preview" className="w-8 h-8 object-cover rounded border" />
+                  <span className="text-[10px] text-green-600 font-bold">✓ Image Ready</span>
+                </div>
+              )}
+            </div>
+
             {/* Category Dropdown */}
             <label className="block text-[11px] font-bold text-gray-600">Main Category:</label>
             <select value={selectedCat} onChange={(e) => setSelectedCat(e.target.value)} className="w-full border p-2 text-xs rounded font-medium text-gray-700">
