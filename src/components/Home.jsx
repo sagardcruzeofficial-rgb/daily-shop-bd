@@ -13,7 +13,7 @@ export default function Home() {
   const setSelectedSubCategory = context.setSelectedSubCategory || (() => {});
   const setSelectedProduct = context.setSelectedProduct || (() => {});
 
-  // প্রোডাক্ট লিস্ট ফালব্যাক লজিক (নিশ্চিত করা যাতে কোনোভাবেই ডেটা মিস না হয়)
+  // প্রোডাক্ট লিস্ট ফালব্যাক লজিক
   const filteredProducts = context.filteredProducts || context.products || context.allProducts || [];
   const allProductsList = context.products || context.filteredProducts || context.allProducts || [];
 
@@ -37,7 +37,7 @@ export default function Home() {
   // বর্তমান ফিল্টার করা লিস্ট থেকে পেজিনেশনের জন্য প্রোডাক্ট কাটছাঁট করা
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage) || 1;
   
-  // সেফটি চেক: বর্তমান পেজ মোট পেজের বেশি হয়ে গেলে পেজ ১ এ নিয়ে আসা
+  // সেফটি চেক: বর্তমান পেজ মোট পেজের বেশি হয়ে গেলে পেজ ১ এ নিয়ে আসা
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(1);
@@ -56,6 +56,11 @@ export default function Home() {
     }, 3000);
     return () => clearInterval(interval);
   }, [recentProducts.length]);
+
+  // ক্যাটাগরি-ওয়াইজ আলাদা সেকশন বানানোর লজিক (যদি ইউজার আলাদা আলাদা ক্যাটাগরি সেকশন দেখতে চান)
+  const categoriesToDisplay = selectedCategory === 'All' 
+    ? categoryData 
+    : categoryData.filter(cat => cat.name === selectedCategory);
 
   return (
     <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '16px' }} className="font-sans bg-gray-100 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-300">
@@ -143,13 +148,11 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ==================== ২. ডান পাশের ব্যানার ও প্রোডাক্ট গ্রিড ==================== */}
+        {/* ==================== ২. ডান পাশের ব্যানার ও আলাদা সেকশন গ্রিড ==================== */}
         <div className="flex-1 w-full space-y-6">
           
           {/* ব্যানার ও স্লাইডার ফ্রেম */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            
-            {/* মেইন সুপারশপ ব্যানার */}
             <div className="lg:col-span-2 relative rounded-2xl overflow-hidden shadow-[0_10px_25px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.5)] border-2 border-gray-200 dark:border-gray-800 h-52 bg-gray-900 group">
               <img
                 src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=800&q=80"
@@ -165,10 +168,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* ডান পাশের ছোট স্লাইডার ও প্রোমো */}
             <div className="lg:col-span-1 grid grid-cols-2 lg:grid-cols-1 gap-3">
-              
-              {/* স্লাইডার ফ্রেম */}
               <div
                 onClick={() => setSelectedProduct && recentProducts[currentSlide] && setSelectedProduct(recentProducts[currentSlide])}
                 className="relative bg-black rounded-xl overflow-hidden shadow-[0_6px_15px_rgba(0,0,0,0.1)] dark:shadow-[0_6px_15px_rgba(0,0,0,0.4)] h-24 border-2 border-gray-200 dark:border-gray-800 cursor-pointer group hover:border-[#f57224] transition-all"
@@ -195,7 +195,6 @@ export default function Home() {
                 )}
               </div>
 
-              {/* প্রোমো ব্যানার */}
               <div className="relative rounded-xl overflow-hidden shadow-[0_6px_15px_rgba(0,0,0,0.1)] dark:shadow-[0_6px_15px_rgba(0,0,0,0.4)] h-24 border-2 border-gray-200 dark:border-gray-800 group bg-gray-100 dark:bg-gray-800 hover:border-[#f57224] transition-all">
                 <img
                   src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=400&q=80"
@@ -207,85 +206,102 @@ export default function Home() {
                   <p className="text-[9px] text-gray-200 font-medium">Exclusive Collection</p>
                 </div>
               </div>
-
             </div>
-
           </div>
 
-          {/* প্রোডাক্ট গ্রিড সেকশন */}
-          <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border-2 border-gray-200 dark:border-gray-800 shadow-[0_8px_20px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.3)]">
-            <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-gray-100 dark:border-gray-800">
-              <h3 className="text-sm font-black text-gray-800 dark:text-gray-100 uppercase tracking-wider flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#f57224]"></span>
-                {selectedCategory} {selectedSubCategory !== 'All' ? ` › ${selectedSubCategory}` : ''}
-              </h3>
-              <span className="text-xs text-white bg-[#f57224] px-2.5 py-1 rounded-lg font-black shadow-sm">
-                Showing {currentProducts.length} of {filteredProducts.length} Items (Page {currentPage} of {totalPages})
-              </span>
+          {/* ==================== ক্যাটাগরি-ওয়াইজ আলাদা সেকশন রেন্ডারিং ==================== */}
+          {filteredProducts.length === 0 ? (
+            <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border-2 border-gray-200 dark:border-gray-800 text-center py-16 shadow-sm">
+              <span className="text-4xl">🛍️</span>
+              <h4 className="text-base font-bold text-gray-700 dark:text-gray-300 mt-2">No Products Found!</h4>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Try selecting a different category from the left menu.</p>
             </div>
+          ) : (
+            <div className="space-y-6">
+              {/* যদি আপনি Fashion, Electronics ইত্যাদি আলাদা সেকশন অনুযায়ী দেখাতে চান */}
+              {categoriesToDisplay.map((cat) => {
+                // ক্যাটাগরির আন্ডারে থাকা প্রোডাক্ট ফিল্টার করা
+                const catProducts = currentProducts.filter(
+                  (prod) => prod.category === cat.name || prod.categoryName === cat.name
+                );
 
-            {filteredProducts.length === 0 ? (
-              <div className="text-center py-16 bg-gray-50 dark:bg-gray-950 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-800 transition-colors">
-                <span className="text-4xl">🛍️</span>
-                <h4 className="text-base font-bold text-gray-700 dark:text-gray-300 mt-2">No Products Found!</h4>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Try selecting a different category from the left menu.</p>
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {currentProducts.map((prod, idx) => (
-                    <ProductCard key={prod.id || prod._id || idx} product={prod} />
-                  ))}
-                </div>
+                // যদি নির্দিষ্ট ক্যাটাগরি সিলেক্ট করা থাকে অথবা অল ক্যাটাগরিতে এই ক্যাটাগরির প্রোডাক্ট থাকে
+                if (selectedCategory !== 'All' && selectedCategory !== cat.name) return null;
+                if (selectedCategory === 'All' && catProducts.length === 0 && categoryData.length > 1) return null;
 
-                {/* পেজিনেশন বাটন (Pagination Controls) - সবসময় দেখাবে যাতে টেস্ট করতে সুবিধা হয় */}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-2 mt-8 pt-4 border-t border-gray-100 dark:border-gray-800">
-                    <button
-                      onClick={() => {
-                        setCurrentPage((prev) => Math.max(prev - 1, 1));
-                        window.scrollTo({ top: 400, behavior: 'smooth' });
-                      }}
-                      disabled={currentPage === 1}
-                      className="px-3.5 py-1.5 rounded-lg text-xs font-bold border border-gray-200 dark:border-gray-750 bg-gray-50 dark:bg-gray-850 text-gray-700 dark:text-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-                    >
-                      Prev
-                    </button>
+                // যদি ক্যাটাগরি ফিল্টার করা না থাকে কিন্তু অল প্রোডাক্ট দেখাতে হয়, তবে সরাসরি currentProducts দেখাবে
+                const displayList = selectedCategory === 'All' ? currentProducts : catProducts;
 
-                    <div className="flex items-center gap-1.5">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => (
-                        <button
-                          key={pageNumber}
-                          onClick={() => {
-                            setCurrentPage(pageNumber);
-                            window.scrollTo({ top: 400, behavior: 'smooth' });
-                          }}
-                          className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${
-                            currentPage === pageNumber
-                              ? 'bg-[#f57224] text-white shadow-md shadow-orange-500/30'
-                              : 'bg-gray-50 dark:bg-gray-850 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-750 hover:bg-gray-100 dark:hover:bg-gray-800'
-                          }`}
-                        >
-                          {pageNumber}
-                        </button>
-                      ))}
+                if (displayList.length === 0) return null;
+
+                return (
+                  <div key={cat.name} className="bg-white dark:bg-gray-900 p-5 rounded-2xl border-2 border-gray-200 dark:border-gray-800 shadow-[0_8px_20px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.3)]">
+                    <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-gray-100 dark:border-gray-800">
+                      <h3 className="text-sm font-black text-gray-800 dark:text-gray-100 uppercase tracking-wider flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#f57224]"></span>
+                        {cat.name} {selectedSubCategory !== 'All' ? ` › ${selectedSubCategory}` : ''}
+                      </h3>
+                      <span className="text-xs text-white bg-[#f57224] px-2.5 py-1 rounded-lg font-black shadow-sm">
+                        Page {currentPage} of {totalPages}
+                      </span>
                     </div>
 
-                    <button
-                      onClick={() => {
-                        setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-                        window.scrollTo({ top: 400, behavior: 'smooth' });
-                      }}
-                      disabled={currentPage === totalPages}
-                      className="px-3.5 py-1.5 rounded-lg text-xs font-bold border border-gray-200 dark:border-gray-750 bg-gray-50 dark:bg-gray-850 text-gray-700 dark:text-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-                    >
-                      Next
-                    </button>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      {displayList.map((prod, idx) => (
+                        <ProductCard key={prod.id || prod._id || idx} product={prod} />
+                      ))}
+                    </div>
                   </div>
-                )}
-              </>
-            )}
-          </div>
+                );
+              })}
+
+              {/* পেজিনেশন বাটন (Pagination Controls) */}
+              {totalPages > 1 && (
+                <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl border-2 border-gray-200 dark:border-gray-800 flex items-center justify-center gap-2 shadow-sm">
+                  <button
+                    onClick={() => {
+                      setCurrentPage((prev) => Math.max(prev - 1, 1));
+                      window.scrollTo({ top: 400, behavior: 'smooth' });
+                    }}
+                    disabled={currentPage === 1}
+                    className="px-3.5 py-1.5 rounded-lg text-xs font-bold border border-gray-200 dark:border-gray-750 bg-gray-50 dark:bg-gray-850 text-gray-700 dark:text-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                  >
+                    Prev
+                  </button>
+
+                  <div className="flex items-center gap-1.5">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => (
+                      <button
+                        key={pageNumber}
+                        onClick={() => {
+                          setCurrentPage(pageNumber);
+                          window.scrollTo({ top: 400, behavior: 'smooth' });
+                        }}
+                        className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${
+                          currentPage === pageNumber
+                            ? 'bg-[#f57224] text-white shadow-md shadow-orange-500/30'
+                            : 'bg-gray-50 dark:bg-gray-850 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-750 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+                      window.scrollTo({ top: 400, behavior: 'smooth' });
+                    }}
+                    disabled={currentPage === totalPages}
+                    className="px-3.5 py-1.5 rounded-lg text-xs font-bold border border-gray-200 dark:border-gray-750 bg-gray-50 dark:bg-gray-850 text-gray-700 dark:text-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
         </div>
 
