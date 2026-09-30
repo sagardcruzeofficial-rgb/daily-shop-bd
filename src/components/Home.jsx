@@ -25,6 +25,21 @@ export default function Home() {
   const currentCatObj = categoryData.find((c) => c.name === selectedCategory);
   const currentSubCategories = currentCatObj ? currentCatObj.subCategories || [] : [];
 
+  // পেজিনেশন স্টেট (প্রতি পেজে ২৪টি প্রোডাক্ট)
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 24;
+
+  // ক্যাটাগরি বা সাব-ক্যাটাগরি পরিবর্তন হলে পেজ ১-এ রিইন্ড করার জন্য
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, selectedSubCategory]);
+
+  // বর্তমান ফিল্টার করা লিস্ট থেকে পেজিনেশনের জন্য প্রোডাক্ট কাটছাঁট করা
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
   // স্লাইডার টাইমার
   useEffect(() => {
     if (recentProducts.length <= 1) return;
@@ -206,11 +221,59 @@ export default function Home() {
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Try selecting a different category from the left menu.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {filteredProducts.map((prod, idx) => (
-                  <ProductCard key={prod.id || prod._id || idx} product={prod} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {currentProducts.map((prod, idx) => (
+                    <ProductCard key={prod.id || prod._id || idx} product={prod} />
+                  ))}
+                </div>
+
+                {/* পেজিনেশন বাটন (Pagination Controls) */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-8 pt-4 border-t border-gray-100 dark:border-gray-800">
+                    <button
+                      onClick={() => {
+                        setCurrentPage((prev) => Math.max(prev - 1, 1));
+                        window.scrollTo({ top: 400, behavior: 'smooth' });
+                      }}
+                      disabled={currentPage === 1}
+                      className="px-3.5 py-1.5 rounded-lg text-xs font-bold border border-gray-200 dark:border-gray-750 bg-gray-50 dark:bg-gray-850 text-gray-700 dark:text-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                    >
+                      Prev
+                    </button>
+
+                    <div className="flex items-center gap-1.5">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => (
+                        <button
+                          key={pageNumber}
+                          onClick={() => {
+                            setCurrentPage(pageNumber);
+                            window.scrollTo({ top: 400, behavior: 'smooth' });
+                          }}
+                          className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${
+                            currentPage === pageNumber
+                              ? 'bg-[#f57224] text-white shadow-md shadow-orange-500/30'
+                              : 'bg-gray-50 dark:bg-gray-850 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-750 hover:bg-gray-100 dark:hover:bg-gray-800'
+                          }`}
+                        >
+                          {pageNumber}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+                        window.scrollTo({ top: 400, behavior: 'smooth' });
+                      }}
+                      disabled={currentPage === totalPages}
+                      className="px-3.5 py-1.5 rounded-lg text-xs font-bold border border-gray-200 dark:border-gray-750 bg-gray-50 dark:bg-gray-850 text-gray-700 dark:text-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
