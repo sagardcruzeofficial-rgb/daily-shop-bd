@@ -140,58 +140,79 @@ export default function App() {
     setSelectedProduct
   } = store;
 
-  // Handle URL Slug Routing for Direct Links & Facebook Share matching /product/{slug}-{firestoreId}
+  // Direct product URL routing for Facebook and product sharing.
+  // Example: /product/baby-blanket-M68rnZPC0iv65nje6CeZ
   const [currentSlugProduct, setCurrentSlugProduct] = useState(null);
 
   useEffect(() => {
     const handleUrlChange = () => {
-      const path = window.location.pathname;
-      
-      if (path && path.startsWith('/product/') && products.length > 0) {
-        const slugParam = path.replace('/product/', '');
-        let matchedProd = null;
+      const pathname = window.location.pathname;
 
-        // 1. Try matching by final Firestore ID (the part after the last hyphen)
-        const lastHyphenIndex = slugParam.lastIndexOf('-');
-        if (lastHyphenIndex !== -1) {
-          const firestoreId = slugParam.substring(lastHyphenIndex + 1);
-          matchedProd = products.find(p => p.id === firestoreId);
-        }
-
-        // 2. Fallback: match by full generated slug
-        if (!matchedProd) {
-          matchedProd = products.find(p => createProductSlug(p.name || p.title, p.id) === slugParam);
-        }
-
-        if (matchedProd) {
-          setCurrentSlugProduct(matchedProd);
-          
-          // Update OpenGraph tags dynamically
-          document.title = `${matchedProd.name || matchedProd.title} | DailyShopBD`;
-          
-          let metaOgTitle = document.querySelector("meta[property='og:title']");
-          if (metaOgTitle) metaOgTitle.setAttribute("content", matchedProd.name || matchedProd.title);
-
-          let metaOgDesc = document.querySelector("meta[property='og:description']");
-          if (metaOgDesc) metaOgDesc.setAttribute("content", matchedProd.description || "Best price in Bangladesh at DailyShopBD.");
-
-          let metaOgImage = document.querySelector("meta[property='og:image']");
-          if (metaOgImage && matchedProd.image) metaOgImage.setAttribute("content", matchedProd.image);
-        } else {
-          setCurrentSlugProduct(null);
-        }
-      } else {
+      if (pathname === '/' || pathname === '') {
         setCurrentSlugProduct(null);
+        return;
+      }
+
+      if (!pathname.startsWith('/product/')) {
+        setCurrentSlugProduct(null);
+        return;
+      }
+
+      const slugParam = pathname
+        .replace(/^\/product\//, '')
+        .replace(/\/$/, '');
+
+      if (!slugParam || products.length === 0) {
+        setCurrentSlugProduct(null);
+        return;
+      }
+
+      const lastHyphenIndex = slugParam.lastIndexOf('-');
+      const firestoreId = lastHyphenIndex >= 0
+        ? slugParam.slice(lastHyphenIndex + 1)
+        : '';
+
+      let matchedProduct = products.find(
+        (product) => String(product.id) === String(firestoreId)
+      );
+
+      if (!matchedProduct) {
+        matchedProduct = products.find((product) => {
+          const title = product.name || product.title || 'product';
+          return createProductSlug(title, product.id) === slugParam;
+        });
+      }
+
+      if (!matchedProduct) {
+        setCurrentSlugProduct(null);
+        return;
+      }
+
+      setCurrentSlugProduct(matchedProduct);
+
+      const productTitle = matchedProduct.name || matchedProduct.title || 'DailyShopBD Product';
+      document.title = `${productTitle} | DailyShopBD`;
+
+      const metaTitle = document.querySelector("meta[property='og:title']");
+      if (metaTitle) metaTitle.setAttribute('content', productTitle);
+
+      const metaDescription = document.querySelector("meta[property='og:description']");
+      if (metaDescription) {
+        metaDescription.setAttribute(
+          'content',
+          matchedProduct.description || 'Best price in Bangladesh at DailyShopBD.'
+        );
+      }
+
+      const metaImage = document.querySelector("meta[property='og:image']");
+      if (metaImage && matchedProduct.image) {
+        metaImage.setAttribute('content', matchedProduct.image);
       }
     };
 
     handleUrlChange();
-
-    // Listen to browser back/forward and custom pushState events
     window.addEventListener('popstate', handleUrlChange);
-    return () => {
-      window.removeEventListener('popstate', handleUrlChange);
-    };
+    return () => window.removeEventListener('popstate', handleUrlChange);
   }, [products]);
 
   const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
@@ -230,6 +251,15 @@ export default function App() {
                   className="bg-[#f57224] hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-bold text-xs transition shadow-lg cursor-pointer"
                 >
                   Buy Now / Order
+                </button>
+                <button
+                  onClick={() => {
+                    window.history.pushState({}, '', '/');
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                  }}
+                  className="ml-2 bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-xl font-bold text-xs transition cursor-pointer"
+                >
+                  Back to Shop
                 </button>
               </div>
             </div>
