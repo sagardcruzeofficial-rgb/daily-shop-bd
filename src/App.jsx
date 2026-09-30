@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import CategorySidebar from './components/CategorySidebar';
+import HeroSlider from './components/HeroSlider';
 import ProductCard from './components/ProductCard';
 import ProductDetailModal from './components/ProductDetailModal';
 import AdminView from './components/AdminView';
@@ -174,6 +175,9 @@ export default function App() {
 
               <div className="flex-1 space-y-6">
                 
+                {/* Hero Banner & Quick Categories Slider */}
+                <HeroSlider setSelectedCategory={setSelectedCategory} />
+
                 {selectedCategory && selectedCategory !== 'All' && currentSubCategories.length > 0 && (
                   <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.3)] border-2 border-gray-200 dark:border-gray-800 flex flex-wrap items-center gap-2">
                     <span className="text-xs font-bold text-gray-500 dark:text-gray-400 mr-2">Sub-categories:</span>
