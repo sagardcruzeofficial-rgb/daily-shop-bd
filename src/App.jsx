@@ -10,7 +10,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Footer from './components/Footer';
 import { StoreContext } from './context/StoreContext';
-import { generateSlug } from './utils/slugify';
+import { createProductSlug } from './utils/slugify'; // ফাংশন নাম সঠিক রাখা হলো
 
 const AdminAuthWrapper = ({ children }) => {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(
@@ -140,31 +140,44 @@ export default function App() {
     setSelectedProduct
   } = store;
 
-  // Handle URL Slug Routing for Direct Links & Facebook Share
+  // Handle URL Slug Routing for Direct Links & Facebook Share with PopState support
   const [currentSlugProduct, setCurrentSlugProduct] = useState(null);
 
   useEffect(() => {
-    const path = window.location.pathname;
-    if (path && path !== '/' && products.length > 0) {
-      const slug = path.replace(/^\/+/, '');
-      const matchedProd = products.find(p => generateSlug(p.name) === slug);
-      if (matchedProd) {
-        setCurrentSlugProduct(matchedProd);
-        // Update Facebook OpenGraph / Meta tags dynamically for automation sharing
-        document.title = `${matchedProd.name} | DailyShopBD`;
-        
-        let metaOgTitle = document.querySelector("meta[property='og:title']");
-        if (metaOgTitle) metaOgTitle.setAttribute("content", matchedProd.name);
+    const handleUrlChange = () => {
+      const path = window.location.pathname;
+      if (path && path !== '/' && products.length > 0) {
+        const slug = path.replace(/^\/+/, '');
+        const matchedProd = products.find(p => createProductSlug(p.name || p.title) === slug);
+        if (matchedProd) {
+          setCurrentSlugProduct(matchedProd);
+          
+          // Update OpenGraph tags dynamically
+          document.title = `${matchedProd.name || matchedProd.title} | DailyShopBD`;
+          
+          let metaOgTitle = document.querySelector("meta[property='og:title']");
+          if (metaOgTitle) metaOgTitle.setAttribute("content", matchedProd.name || matchedProd.title);
 
-        let metaOgDesc = document.querySelector("meta[property='og:description']");
-        if (metaOgDesc) metaOgDesc.setAttribute("content", matchedProd.description || "Best price in Bangladesh at DailyShopBD.");
+          let metaOgDesc = document.querySelector("meta[property='og:description']");
+          if (metaOgDesc) metaOgDesc.setAttribute("content", matchedProd.description || "Best price in Bangladesh at DailyShopBD.");
 
-        let metaOgImage = document.querySelector("meta[property='og:image']");
-        if (metaOgImage && matchedProd.image) metaOgImage.setAttribute("content", matchedProd.image);
+          let metaOgImage = document.querySelector("meta[property='og:image']");
+          if (metaOgImage && matchedProd.image) metaOgImage.setAttribute("content", matchedProd.image);
+        } else {
+          setCurrentSlugProduct(null);
+        }
+      } else {
+        setCurrentSlugProduct(null);
       }
-    } else {
-      setCurrentSlugProduct(null);
-    }
+    };
+
+    handleUrlChange();
+
+    // Listen to browser back/forward and custom pushState events
+    window.addEventListener('popstate', handleUrlChange);
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+    };
   }, [products]);
 
   const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
@@ -193,9 +206,9 @@ export default function App() {
         {currentSlugProduct ? (
           <div className="max-w-[1300px] mx-auto px-4 py-8">
             <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-800 shadow-xl flex flex-col md:flex-row gap-6 items-center">
-              <img src={currentSlugProduct.image} alt={currentSlugProduct.name} className="max-h-80 object-contain rounded-xl" />
+              <img src={currentSlugProduct.image} alt={currentSlugProduct.name || currentSlugProduct.title} className="max-h-80 object-contain rounded-xl" />
               <div className="space-y-4">
-                <h1 className="text-2xl font-black text-gray-900 dark:text-gray-100">{currentSlugProduct.name}</h1>
+                <h1 className="text-2xl font-black text-gray-900 dark:text-gray-100">{currentSlugProduct.name || currentSlugProduct.title}</h1>
                 <p className="text-xl font-bold text-[#f57224]">৳{currentSlugProduct.price}</p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">{currentSlugProduct.description}</p>
                 <button 
