@@ -13,7 +13,7 @@ export default function Home() {
   const setSelectedSubCategory = context.setSelectedSubCategory || (() => {});
   const setSelectedProduct = context.setSelectedProduct || (() => {});
 
-  // প্রোডাক্ট লিস্ট ফালব্যাক লজিক
+  // প্রোডাক্ট লিস্ট ফালব্যাক লজিক (নিশ্চিত করা যাতে কোনোভাবেই ডেটা মিস না হয়)
   const filteredProducts = context.filteredProducts || context.products || context.allProducts || [];
   const allProductsList = context.products || context.filteredProducts || context.allProducts || [];
 
@@ -35,10 +35,18 @@ export default function Home() {
   }, [selectedCategory, selectedSubCategory]);
 
   // বর্তমান ফিল্টার করা লিস্ট থেকে পেজিনেশনের জন্য প্রোডাক্ট কাটছাঁট করা
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage) || 1;
+  
+  // সেফটি চেক: বর্তমান পেজ মোট পেজের বেশি হয়ে গেলে পেজ ১ এ নিয়ে আসা
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
   // স্লাইডার টাইমার
   useEffect(() => {
@@ -211,7 +219,9 @@ export default function Home() {
                 <span className="w-2.5 h-2.5 rounded-full bg-[#f57224]"></span>
                 {selectedCategory} {selectedSubCategory !== 'All' ? ` › ${selectedSubCategory}` : ''}
               </h3>
-              <span className="text-xs text-white bg-[#f57224] px-2.5 py-1 rounded-lg font-black shadow-sm">{filteredProducts.length} Items</span>
+              <span className="text-xs text-white bg-[#f57224] px-2.5 py-1 rounded-lg font-black shadow-sm">
+                Showing {currentProducts.length} of {filteredProducts.length} Items (Page {currentPage} of {totalPages})
+              </span>
             </div>
 
             {filteredProducts.length === 0 ? (
@@ -228,7 +238,7 @@ export default function Home() {
                   ))}
                 </div>
 
-                {/* পেজিনেশন বাটন (Pagination Controls) */}
+                {/* পেজিনেশন বাটন (Pagination Controls) - সবসময় দেখাবে যাতে টেস্ট করতে সুবিধা হয় */}
                 {totalPages > 1 && (
                   <div className="flex items-center justify-center gap-2 mt-8 pt-4 border-t border-gray-100 dark:border-gray-800">
                     <button
