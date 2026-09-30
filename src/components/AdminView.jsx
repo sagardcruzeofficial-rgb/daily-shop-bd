@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import { StoreContext } from '../context/StoreContext';
 
 export default function AdminView() {
@@ -11,13 +11,14 @@ export default function AdminView() {
   } = useContext(StoreContext);
   
   // Form States & Editing States
-  const [editingProductId, setEditingProductId] = useState(null); // Edit মোডের জন্য প্রডাক্ট আইডি
+  const [editingProductId, setEditingProductId] = useState(null);
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
   const [sku, setSku] = useState('');
+  const [barcode, setBarcode] = useState(''); // Barcode State
   
   // Image Input States
-  const [imageInputType, setImageInputType] = useState('url'); // 'url' অথবা 'file'
+  const [imageInputType, setImageInputType] = useState('url');
   const [image, setImage] = useState(''); 
 
   const [selectedCat, setSelectedCat] = useState('');
@@ -37,6 +38,8 @@ export default function AdminView() {
   const [footerTitle, setFooterTitle] = useState('');
   const [footerUrl, setFooterUrl] = useState('');
 
+  const barcodeInputRef = useRef(null);
+
   // Default Select Initialization
   useEffect(() => {
     if (categoryData.length > 0) {
@@ -52,13 +55,36 @@ export default function AdminView() {
     }
   }, [supplierList]);
 
+  // Handle Barcode / SKU Scan or Lookup (যদি আগে থেকেই কোনো প্রোডাক্ট এই SKU/Barcode দিয়ে সেভ করা থাকে, তবে তার ডাটা অটো ফিলআপ হয়ে যাবে)
+  const handleBarcodeChange = (val) => {
+    setBarcode(val);
+    setSku(val); // সাধারণত SKU এবং Barcode একই রাখা হয়
+
+    // ডাটাবেজে যদি এই SKU বা Barcode ওয়ালা কোনো প্রোডাক্ট আগে থেকেই থাকে, তবে অটো ফিলআপ করে দিবে
+    const existingProduct = products.find(p => p.sku === val || p.barcode === val);
+    if (existingProduct) {
+      setTitle(existingProduct.title || '');
+      setPrice(existingProduct.price ? existingProduct.price.toString() : '');
+      setImage(existingProduct.image || '');
+      if (existingProduct.category) setSelectedCat(existingProduct.category);
+      if (existingProduct.subCategory) setSelectedSubCat(existingProduct.subCategory);
+      setDescription(existingProduct.description || '');
+      setSupplierUrl(existingProduct.supplierUrl || '');
+      if (existingProduct.supplierName) setSupplierName(existingProduct.supplierName);
+      if (existingProduct.sizes) {
+        setSizesInput(Array.isArray(existingProduct.sizes) ? existingProduct.sizes.join(', ') : existingProduct.sizes);
+      }
+      setEditingProductId(existingProduct.id); // স্বয়ংক্রয়ভাবে এডিট মোডে নিয়ে যাবে
+    }
+  };
+
   // Handle Image File Upload (PC/Mobile)
   const handleImageFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImage(reader.result); // Base64 string
+        setImage(reader.result);
       };
       reader.readAsDataURL(file);
     }
@@ -130,6 +156,7 @@ export default function AdminView() {
     setTitle(product.title || '');
     setPrice(product.price ? product.price.toString() : '');
     setSku(product.sku || '');
+    setBarcode(product.barcode || product.sku || '');
     setImage(product.image || '');
     if (product.category) setSelectedCat(product.category);
     if (product.subCategory) setSelectedSubCat(product.subCategory);
@@ -139,7 +166,6 @@ export default function AdminView() {
     if (product.sizes) {
       setSizesInput(Array.isArray(product.sizes) ? product.sizes.join(', ') : product.sizes);
     }
-    // Scroll smoothly to the form
     window.scrollTo({ top: 400, behavior: 'smooth' });
   };
 
@@ -149,6 +175,7 @@ export default function AdminView() {
     setTitle('');
     setPrice('');
     setSku('');
+    setBarcode('');
     setImage('');
     setDescription('');
     setSupplierUrl('');
@@ -166,6 +193,7 @@ export default function AdminView() {
       title, 
       price: Number(price), 
       sku: sku.trim() || 'N/A', 
+      barcode: barcode.trim() || sku.trim() || 'N/A',
       image, 
       category: selectedCat || (categoryData[0] && categoryData[0].name) || 'Fashion', 
       subCategory: selectedSubCat,
@@ -176,22 +204,17 @@ export default function AdminView() {
     };
 
     if (editingProductId) {
-      // Update Existing Product
       if (typeof updateProduct === 'function') {
         updateProduct(editingProductId, productData);
-      } else {
-        // Fallback if updateProduct context method isn't wired yet
-        console.warn('updateProduct function missing in StoreContext, adding as new or check context');
       }
       alert('Product Updated Successfully!');
       setEditingProductId(null);
     } else {
-      // Add New Product
       addProduct(productData);
-      alert('Product Published Successfully with SKU Code & Supplier Tracker!');
+      alert('Product Published Successfully with Barcode Scanner & SKU Tracker!');
     }
 
-    setTitle(''); setPrice(''); setSku(''); setImage(''); setDescription(''); setSupplierUrl(''); setSizesInput('M, L, XL, XXL');
+    setTitle(''); setPrice(''); setSku(''); setBarcode(''); setImage(''); setDescription(''); setSupplierUrl(''); setSizesInput('M, L, XL, XXL');
   };
 
   const handleAddCategorySubmit = (e) => {
@@ -229,7 +252,7 @@ export default function AdminView() {
       <div className="bg-gray-900 text-white p-6 rounded-2xl mb-8 flex flex-col md:flex-row justify-between items-center shadow-lg gap-4">
         <div>
           <h2 className="text-2xl font-black text-orange-500">DailyShop BD - Master Admin Panel</h2>
-          <p className="text-xs text-gray-400">Manage products, SKU codes, edit items, sub-categories, multi-suppliers, orders & footer links.</p>
+          <p className="text-xs text-gray-400">Barcode Scanner Integration, SKU tracking, multi-suppliers, orders & inventory management.</p>
         </div>
         
         <div className="flex items-center gap-3">
@@ -247,7 +270,7 @@ export default function AdminView() {
         </div>
       </div>
 
-      {/* 1. Customer Orders with SKU Code & Supplier Tracker */}
+      {/* 1. Customer Orders with Barcode & SKU Tracker */}
       <div className="bg-white p-6 rounded-2xl shadow border border-gray-200 mb-8">
         <h3 className="font-bold text-gray-800 text-base mb-4 border-b pb-2">📦 Customer Website Orders ({orders ? orders.length : 0})</h3>
         {!orders || orders.length === 0 ? (
@@ -258,7 +281,7 @@ export default function AdminView() {
               <thead>
                 <tr className="bg-gray-100 text-gray-700">
                   <th className="p-2 border">Date</th>
-                  <th className="p-2 border">Product, SKU & Supplier</th>
+                  <th className="p-2 border">Product, Barcode & Supplier</th>
                   <th className="p-2 border">Price</th>
                   <th className="p-2 border">Payment Details</th>
                   <th className="p-2 border">Customer</th>
@@ -272,7 +295,7 @@ export default function AdminView() {
                   const matchedProduct = products.find(p => p.title === ord.productTitle);
                   const supName = ord.supplierName || (matchedProduct ? matchedProduct.supplierName : 'DropShop');
                   const supUrl = ord.supplierUrl || (matchedProduct ? matchedProduct.supplierUrl : '');
-                  const productSku = ord.sku || (matchedProduct ? matchedProduct.sku : 'N/A');
+                  const productBarcode = ord.barcode || ord.sku || (matchedProduct ? (matchedProduct.barcode || matchedProduct.sku) : 'N/A');
 
                   return (
                     <tr key={ord.id} className="border-b hover:bg-gray-50">
@@ -280,8 +303,8 @@ export default function AdminView() {
                       <td className="p-2 border">
                         <p className="font-bold text-gray-800">{ord.productTitle} ({ord.size})</p>
                         <div className="mt-1 space-y-1">
-                          <span className="inline-block bg-blue-50 text-blue-800 font-mono font-bold px-1.5 py-0.5 rounded border border-blue-200 text-[10px]">
-                            🏷️ SKU: {productSku}
+                          <span className="inline-block bg-purple-50 text-purple-800 font-mono font-bold px-1.5 py-0.5 rounded border border-purple-200 text-[10px]">
+                            📷 Barcode / SKU: {productBarcode}
                           </span>
                         </div>
                         <div className="mt-1 bg-orange-50 p-1.5 rounded border border-orange-200 inline-block">
@@ -331,11 +354,11 @@ export default function AdminView() {
       {/* 2. Management Forms Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         
-        {/* Publish / Edit Product Form */}
-        <div className={`bg-white p-5 rounded-2xl shadow border ${editingProductId ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'}`}>
+        {/* Barcode Scanner & Publish / Edit Product Form */}
+        <div className={`bg-white p-5 rounded-2xl shadow border ${editingProductId ? 'border-purple-500 ring-2 ring-purple-200' : 'border-gray-200'}`}>
           <div className="flex justify-between items-center mb-3 border-b pb-2">
             <h3 className="font-bold text-gray-800 text-sm">
-              {editingProductId ? '✏️ Edit Product' : '➕ Publish New Product'}
+              {editingProductId ? '✏️ Edit / Scan Product' : '📷 Barcode Scan & Publish'}
             </h3>
             {editingProductId && (
               <button 
@@ -349,6 +372,20 @@ export default function AdminView() {
           </div>
 
           <form onSubmit={handleProductSubmit} className="space-y-3">
+            {/* Barcode Scanner Input Field */}
+            <div className="bg-purple-50 p-2.5 rounded-xl border border-purple-200 space-y-1">
+              <label className="block text-[11px] font-bold text-purple-900">📷 Scan Barcode or Enter SKU:</label>
+              <input 
+                ref={barcodeInputRef}
+                type="text" 
+                placeholder="Scan barcode here (Auto-Fill)" 
+                value={barcode} 
+                onChange={(e) => handleBarcodeChange(e.target.value)} 
+                className="w-full border border-purple-300 p-2 text-xs rounded bg-white font-mono font-bold text-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-400" 
+              />
+              <p className="text-[9px] text-purple-600">💡 স্ক্যান করার সাথে সাথে যদি আগে থেকে সেভ করা থাকে তবে ফিল্ডগুলো অটো ফিলআপ হয়ে যাবে।</p>
+            </div>
+
             <input type="text" placeholder="Product Title" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full border p-2 text-xs rounded" />
             
             <div className="flex gap-2">
@@ -356,7 +393,7 @@ export default function AdminView() {
               <input type="text" placeholder="SKU Code" value={sku} onChange={(e) => setSku(e.target.value)} className="w-1/2 border p-2 text-xs rounded font-mono font-bold bg-blue-50/50 border-blue-200" />
             </div>
             
-            {/* Image Input Section (URL or File Upload) */}
+            {/* Image Input Section */}
             <div className="space-y-1.5">
               <label className="block text-[11px] font-bold text-gray-600">Product Image Source:</label>
               <div className="flex gap-2">
@@ -437,7 +474,7 @@ export default function AdminView() {
                 ))}
               </select>
 
-              {/* ➕ Add & Manage Suppliers Section */}
+              {/* Add & Manage Suppliers Section */}
               <div className="mt-2 space-y-1.5 border-t border-orange-200 pt-2">
                 <span className="text-[10px] font-bold text-orange-900 block">Manage Suppliers (Add / Delete):</span>
                 <div className="flex gap-1.5">
@@ -457,7 +494,6 @@ export default function AdminView() {
                   </button>
                 </div>
 
-                {/* List of current suppliers with delete option */}
                 <div className="max-h-24 overflow-y-auto space-y-1 bg-white p-1.5 rounded border border-orange-200">
                   {supplierList.map((sup) => (
                     <div key={sup} className="flex justify-between items-center text-[10px] bg-gray-50 px-1.5 py-0.5 rounded">
@@ -506,9 +542,9 @@ export default function AdminView() {
             <textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} required className="w-full border p-2 text-xs rounded" rows={3}></textarea>
             
             <button className={`w-full font-bold py-2 rounded text-xs text-white transition shadow ${
-              editingProductId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[#f57224] hover:bg-orange-600'
+              editingProductId ? 'bg-purple-600 hover:bg-purple-700' : 'bg-[#f57224] hover:bg-orange-600'
             }`}>
-              {editingProductId ? '💾 Update Product' : 'Publish Product'}
+              {editingProductId ? '💾 Update Scanned Product' : 'Publish Product'}
             </button>
           </form>
         </div>
@@ -538,7 +574,6 @@ export default function AdminView() {
             </form>
           </div>
 
-          {/* Active Categories and Subcategories Tree */}
           <div className="max-h-48 overflow-y-auto space-y-2 border-t pt-2">
             <h4 className="text-[11px] font-bold text-gray-500 uppercase">Active Category Structure:</h4>
             {categoryData.map((c) => (
@@ -607,7 +642,7 @@ export default function AdminView() {
                   </div>
                 </div>
                 <div className="text-[10px] text-gray-500 flex flex-col gap-0.5">
-                  <span><strong>SKU:</strong> <span className="text-blue-700 font-mono font-bold">{p.sku || 'N/A'}</span></span>
+                  <span><strong>Barcode/SKU:</strong> <span className="text-purple-700 font-mono font-bold">{p.barcode || p.sku || 'N/A'}</span></span>
                   <span><strong>Supplier:</strong> <span className="text-orange-600 font-bold">{p.supplierName || 'DropShop'}</span></span>
                   <span><strong>Sizes:</strong> {Array.isArray(p.sizes) ? p.sizes.join(', ') : 'Standard'}</span>
                   {p.supplierUrl ? (
