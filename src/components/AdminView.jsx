@@ -24,7 +24,6 @@ export default function AdminView() {
 
   const [activeAdminTab, setActiveAdminTab] = useState('Products');
 
-  // প্রোডাক্ট ফর্মের স্টেট
   const [productName, setProductName] = useState('');
   const [productPrice, setProductPrice] = useState('');
   const [productDesc, setProductDesc] = useState('');
@@ -34,11 +33,9 @@ export default function AdminView() {
   const [productSupplier, setProductSupplier] = useState(supplierList[0] || 'Daraz');
   const [supplierUrl, setSupplierUrl] = useState('');
   
-  // ফেসবুক পেজে অটো পোস্ট করার স্টেট
   const [autoPostFB, setAutoPostFB] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
 
-  // ফেসবুক পেজে পোস্ট করার ফাংশন
   const postToFacebookPage = async (productData) => {
     const PAGE_ID = import.meta.env.VITE_FB_PAGE_ID || "61594581823761";
     const ACCESS_TOKEN = import.meta.env.VITE_FB_ACCESS_TOKEN || "EAApyQMKnZA0wBSqktAHJ1gvCfXoLwwTfklPzQo8vA63wOZAPR7coWqWTiSQM1j1Lc3GwBpZAkgKLBujRmEcMBJVE2hY6IsUDRdkMasoZAYbtFNnRCqkcFcLaF2weKSIqSoYSajZBbnRAFvETVdKx1LNOdjlDPfu2Q2Re9Y7oS7bJIr13kdVUoeOZAbAsAnAxvQuIHVbdF951DAjj9xbfpMQnLhZA0P9ZC2nPISOsGuX2";
@@ -88,10 +85,8 @@ export default function AdminView() {
     };
 
     try {
-      // ১. ডাটাবেসে প্রোডাক্ট সেভ করা
       await addProduct(newProductData);
 
-      // ২. চেকবক্স টিক করা থাকলে এক ক্লিকে ফেসবুক পেজে পোস্ট করা
       if (autoPostFB) {
         await postToFacebookPage(newProductData);
         alert("প্রোডাক্ট সফলভাবে অ্যাড হয়েছে এবং ফেসবুক পেজেও পোস্ট করা হয়েছে! 🎉");
@@ -99,7 +94,6 @@ export default function AdminView() {
         alert("প্রোডাক্ট সফলভাবে অ্যাড হয়েছে!");
       }
 
-      // ফর্ম ক্লিয়ার করা
       setProductName('');
       setProductPrice('');
       setProductDesc('');
@@ -153,7 +147,6 @@ export default function AdminView() {
 
       {activeAdminTab === 'Products' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* নতুন প্রোডাক্ট আপলোড ফর্ম */}
           <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-800 shadow-lg">
             <h2 className="text-lg font-black text-gray-900 dark:text-gray-100 mb-4 border-b-2 border-gray-100 dark:border-gray-800 pb-3">
               ➕ নতুন প্রোডাক্ট যোগ করুন
@@ -239,7 +232,6 @@ export default function AdminView() {
                 ></textarea>
               </div>
 
-              {/* এক ক্লিকে ফেসবুক পেজে পোস্ট করার চেকবক্স */}
               <div className="flex items-center gap-3 p-3 bg-orange-50 dark:bg-gray-800/80 rounded-xl border-2 border-orange-200 dark:border-gray-700">
                 <input
                   type="checkbox"
@@ -263,7 +255,6 @@ export default function AdminView() {
             </form>
           </div>
 
-          {/* বিদ্যমান প্রোডাক্ট লিস্ট */}
           <div className="lg:col-span-2 bg-white dark:bg-gray-900 p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-800 shadow-lg">
             <h2 className="text-lg font-black text-gray-900 dark:text-gray-100 mb-4 border-b-2 border-gray-100 dark:border-gray-800 pb-3">
               📋 প্রজেক্টের সব প্রোডাক্ট ({products.length})
