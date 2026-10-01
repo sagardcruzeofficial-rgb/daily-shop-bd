@@ -14,20 +14,25 @@ import { useAuth } from './context/AuthContext';
 import { createProductSlug } from './utils/slugify';
 
 const AdminAuthWrapper = ({ children }) => {
-  const { login, logout } = useAuth();
+  const { logout } = useAuth();
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [error, setError] = useState(false);
 
-  const handleLogin = async (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
-    try {
-      await login(usernameInput.trim(), passwordInput);
+    // WARNING: This credential is visible in a public frontend bundle.
+    const ADMIN_USERNAME = 'Sagar Dcruze';
+    const ADMIN_PASSWORD = 'sAgar2002@#';
+
+    if (
+      usernameInput.trim() === ADMIN_USERNAME &&
+      passwordInput === ADMIN_PASSWORD
+    ) {
       setIsAdminAuthenticated(true);
       setError(false);
-    } catch (authError) {
-      console.error('Admin login failed:', authError);
+    } else {
       setError(true);
       setPasswordInput('');
     }
