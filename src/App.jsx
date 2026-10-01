@@ -10,33 +10,31 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Footer from './components/Footer';
 import { StoreContext } from './context/StoreContext';
+import { useAuth } from './context/AuthContext';
 import { createProductSlug } from './utils/slugify';
 
 const AdminAuthWrapper = ({ children }) => {
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(
-    sessionStorage.getItem('adminAuth') === 'true'
-  );
+  const { login, logout } = useAuth();
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [error, setError] = useState(false);
 
-  const ADMIN_USER = "Sagar Dcruze";
-  const ADMIN_PASS = "sAgar2002@#";
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (usernameInput === ADMIN_USER && passwordInput === ADMIN_PASS) {
+    try {
+      await login(usernameInput.trim(), passwordInput);
       setIsAdminAuthenticated(true);
-      sessionStorage.setItem('adminAuth', 'true');
       setError(false);
-    } else {
+    } catch (authError) {
+      console.error('Admin login failed:', authError);
       setError(true);
       setPasswordInput('');
     }
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('adminAuth');
+  const handleLogout = async () => {
+    await logout();
     setIsAdminAuthenticated(false);
     setUsernameInput('');
     setPasswordInput('');
@@ -49,12 +47,12 @@ const AdminAuthWrapper = ({ children }) => {
           <h2 className="mb-6 text-xl font-black text-center text-gray-800 dark:text-gray-100 border-b-2 border-gray-100 dark:border-gray-800 pb-3">Admin Panel Security</h2>
           <form onSubmit={handleLogin}>
             <div className="mb-4">
-              <label className="block mb-2 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Admin Username</label>
+              <label className="block mb-2 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Admin Email</label>
               <input
                 type="text"
                 value={usernameInput}
                 onChange={(e) => setUsernameInput(e.target.value)}
-                placeholder="Username..."
+                placeholder="admin@example.com"
                 className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:border-[#f57224] text-sm text-gray-800 dark:text-gray-100 font-medium transition"
                 required
               />
@@ -88,7 +86,7 @@ const AdminAuthWrapper = ({ children }) => {
       <div className="bg-white dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-800 px-6 py-3 flex justify-between items-center shadow-sm">
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
-          <span className="text-xs font-black text-gray-800 dark:text-gray-200 uppercase tracking-wider">Admin Panel Connected (Secure)</span>
+          <span className="text-xs font-black text-gray-800 dark:text-gray-200 uppercase tracking-wider">Admin Panel Connected</span>
         </div>
         <button
           onClick={handleLogout}
@@ -136,6 +134,7 @@ export default function App() {
     setSelectedCategory, 
     selectedSubCategory = 'All', 
     setSelectedSubCategory, 
+    searchQuery = '',
     activeTab = 'Home',
     setSelectedProduct
   } = store;
@@ -231,7 +230,12 @@ export default function App() {
 
   const currentCatObj = categoryData ? categoryData.find(c => c.name === selectedCategory) : null;
   const currentSubCategories = currentCatObj ? currentCatObj.subCategories || [] : [];
-  const displayProducts = (filteredProducts && filteredProducts.length > 0) ? filteredProducts : products;
+  const hasActiveFilter = Boolean(
+    searchQuery?.trim() ||
+    selectedCategory !== 'All' ||
+    selectedSubCategory !== 'All'
+  );
+  const displayProducts = hasActiveFilter ? filteredProducts : products;
 
   return (
     <div className="bg-gray-50 dark:bg-gray-950 min-h-screen flex flex-col justify-between font-sans transition-colors duration-300">
