@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { db } from '../firebase';
 import {  
   collection,  
@@ -6,7 +6,6 @@ import {
   addDoc,  
   deleteDoc,  
   doc,  
-  updateDoc,
   setDoc,
   getDoc
 } from 'firebase/firestore';
@@ -251,6 +250,7 @@ export const StoreProvider = ({ children }) => {
       setProducts((prev) => [{ ...productWithSupplier, id: docRef.id }, ...prev]);
     } catch (error) {
       console.error("Error adding product:", error);
+      throw error;
     }
   };
 
@@ -346,11 +346,12 @@ export const StoreProvider = ({ children }) => {
   };
 
   const filteredProducts = products.filter((p) => {
-    const matchesSearch =
-      p.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (p.subCategory && p.subCategory.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const searchableText = [p.name, p.title, p.category, p.subCategory, p.description]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    const matchesSearch = !normalizedQuery || searchableText.includes(normalizedQuery);
 
     const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
     const matchesSubCategory = selectedSubCategory === 'All' || p.subCategory === selectedSubCategory;
@@ -372,4 +373,14 @@ export const StoreProvider = ({ children }) => {
       {children}
     </StoreContext.Provider>
   );
+};
+
+export const useStore = () => {
+  const context = useContext(StoreContext);
+
+  if (!context) {
+    throw new Error('useStore must be used inside StoreProvider');
+  }
+
+  return context;
 };
