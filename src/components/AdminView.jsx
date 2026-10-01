@@ -37,30 +37,18 @@ export default function AdminView() {
   const [isUploading, setIsUploading] = useState(false);
 
   const postToFacebookPage = async (productData) => {
-    const PAGE_ID = import.meta.env.VITE_FB_PAGE_ID || "61594581823761";
-    const ACCESS_TOKEN = import.meta.env.VITE_FB_ACCESS_TOKEN || "EAApyQMKnZA0wBSqktAHJ1gvCfXoLwwTfklPzQo8vA63wOZAPR7coWqWTiSQM1j1Lc3GwBpZAkgKLBujRmEcMBJVE2hY6IsUDRdkMasoZAYbtFNnRCqkcFcLaF2weKSIqSoYSajZBbnRAFvETVdKx1LNOdjlDPfu2Q2Re9Y7oS7bJIr13kdVUoeOZAbAsAnAxvQuIHVbdF951DAjj9xbfpMQnLhZA0P9ZC2nPISOsGuX2";
-
-    const message = `🔥 নতুন প্রোডাক্ট এসে গেছে! 🔥\n\n📌 নাম: ${productData.name}\n💰 দাম: ৳${productData.price}\n📝 বিবরণ: ${productData.description || 'খুব শীঘ্রই অর্ডার করুন।'}\n\n🛒 অর্ডার করতে ভিজিট করুন: https://dailyshopbd.com`;
-
-    const formData = new FormData();
-    formData.append("message", message);
-    if (productData.image) {
-      formData.append("url", productData.image);
-    }
-    formData.append("access_token", ACCESS_TOKEN);
-
     try {
-      const response = await fetch(`https://graph.facebook.com/v18.0/${PAGE_ID}/photos`, {
-        method: "POST",
-        body: formData,
+      const response = await fetch('/api/post-facebook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productData),
       });
-
       const data = await response.json();
-      if (!data.id) {
-        console.error("Facebook API Error:", data);
-      }
+      if (!response.ok || !data.success) throw new Error(data.message || 'Facebook post failed');
+      return true;
     } catch (error) {
-      console.error("Facebook Network Error:", error);
+      console.error('Facebook posting error:', error);
+      return false;
     }
   };
 
@@ -88,8 +76,10 @@ export default function AdminView() {
       await addProduct(newProductData);
 
       if (autoPostFB) {
-        await postToFacebookPage(newProductData);
-        alert("প্রোডাক্ট সফলভাবে অ্যাড হয়েছে এবং ফেসবুক পেজেও পোস্ট করা হয়েছে! 🎉");
+        const posted = await postToFacebookPage(newProductData);
+        alert(posted
+          ? "প্রোডাক্ট সফলভাবে অ্যাড হয়েছে এবং ফেসবুক পেজেও পোস্ট করা হয়েছে! 🎉"
+          : "প্রোডাক্ট অ্যাড হয়েছে, কিন্তু Facebook পোস্ট করা যায়নি। Server environment variables চেক করুন।");
       } else {
         alert("প্রোডাক্ট সফলভাবে অ্যাড হয়েছে!");
       }
