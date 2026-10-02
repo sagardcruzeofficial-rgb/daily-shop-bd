@@ -7,7 +7,8 @@ import {
   deleteDoc,  
   doc,  
   setDoc,
-  getDoc
+  getDoc,
+  updateDoc
 } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 
@@ -254,6 +255,18 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
+  const updateProduct = async (id, updatedProduct) => {
+    try {
+      await updateDoc(doc(db, 'products', id), updatedProduct);
+      setProducts((prev) => prev.map((product) => (
+        product.id === id ? { ...product, ...updatedProduct } : product
+      )));
+    } catch (error) {
+      console.error("Error updating product:", error);
+      throw error;
+    }
+  };
+
   const deleteProduct = async (id) => {
     setProducts((prev) => prev.filter((p) => p.id !== id));
     try {
@@ -365,7 +378,7 @@ export const StoreProvider = ({ children }) => {
       selectedSubCategory, setSelectedSubCategory, searchQuery, setSearchQuery, cart: Array.isArray(cart) ? cart : [],
       selectedProduct, setSelectedProduct, activeTab, setActiveTab,
       orders, footerLinks, checkoutItems, loading, startCheckout,
-      addToCart, removeFromCart, clearCart, addProduct, deleteProduct,
+      addToCart, removeFromCart, clearCart, addProduct, updateProduct, deleteProduct,
       addOrder, deleteOrder, addFooterLink, deleteFooterLink,
       addCategory, deleteCategory, addSubCategory, deleteSubCategory,
       toggleSelectItem, toggleSelectAll, supplierList, addSupplierSource, deleteSupplierSource
