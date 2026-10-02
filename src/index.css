@@ -1,10 +1,35 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
-import './index.css'
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-)
+:root {
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #172033;
+  background: #f4f7fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; min-width: 320px; background: #f4f7fb; }
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; }
+
+/* Crystal UI utility used by the storefront navigation and action controls. */
+.crystal-surface {
+  background: linear-gradient(145deg, rgba(255,255,255,.82), rgba(255,255,255,.42));
+  border: 1px solid rgba(255,255,255,.92);
+  box-shadow: 0 10px 28px rgba(25, 45, 80, .10), inset 0 1px 0 rgba(255,255,255,.95), inset 0 -1px 0 rgba(126, 146, 180, .12);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.dark body, html.dark body { background: #09111f; }
+.dark .crystal-surface { background: linear-gradient(145deg, rgba(31,45,68,.88), rgba(15,23,42,.72)); border-color: rgba(148,163,184,.22); }
+
+@keyframes crystalShimmer { 0%, 100% { transform: translateX(-120%); opacity: 0; } 40% { opacity: .4; } 70% { transform: translateX(120%); opacity: 0; } }
+.crystal-shimmer { position: relative; overflow: hidden; }
+.crystal-shimmer::after { content: ''; position: absolute; inset: 0; width: 35%; background: linear-gradient(105deg, transparent, rgba(255,255,255,.55), transparent); transform: translateX(-120%); animation: crystalShimmer 5s ease-in-out infinite; pointer-events: none; }
+
+@media (max-width: 640px) {
+  .crystal-surface { box-shadow: 0 6px 18px rgba(25, 45, 80, .08), inset 0 1px 0 rgba(255,255,255,.9); }
+}
