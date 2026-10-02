@@ -23,7 +23,7 @@ export default function ProductCard({ product }) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden shadow-[0_6px_16px_rgba(0,0,0,0.04)] dark:shadow-[0_6px_16px_rgba(0,0,0,0.3)] hover:border-[#f57224] dark:hover:border-[#f57224] hover:shadow-[0_10px_24px_rgba(245,114,36,0.15)] transition-all duration-300 flex flex-col justify-between group">
+    <div className="crystal-surface bg-white/90 dark:bg-gray-900/90 border border-slate-200/80 dark:border-gray-800 rounded-xl sm:rounded-2xl overflow-hidden hover:border-[#f57224] dark:hover:border-[#f57224] hover:-translate-y-1 hover:shadow-[0_14px_30px_rgba(245,114,36,0.16)] transition-all duration-300 flex flex-col justify-between group">
 
       <div
         className="cursor-pointer relative overflow-hidden"
@@ -36,7 +36,7 @@ export default function ProductCard({ product }) {
           }
         }}
       >
-        <div className="relative w-full h-44 bg-gray-100 dark:bg-gray-800 overflow-hidden">
+        <div className="relative w-full h-36 sm:h-44 bg-slate-100 dark:bg-gray-800 overflow-hidden">
           <img
             src={product.image}
             alt={product.title || product.name || 'Product'}
@@ -50,32 +50,32 @@ export default function ProductCard({ product }) {
           </span>
         )}
 
-        <div className="p-3">
+        <div className="p-2.5 sm:p-3">
           <span className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider block mb-0.5">
             {product.category}
           </span>
 
-          <h3 className="text-xs font-bold text-gray-800 dark:text-gray-200 line-clamp-1 group-hover:text-[#f57224] transition">
+          <h3 className="text-[11px] sm:text-xs font-bold text-gray-800 dark:text-gray-200 line-clamp-2 min-h-[2rem] group-hover:text-[#f57224] transition">
             {product.title || product.name}
           </h3>
 
-          <p className="text-sm font-black text-[#f57224] mt-1">
+          <p className="text-sm sm:text-base font-black text-[#f57224] mt-1">
             ৳{product.price}
           </p>
         </div>
       </div>
 
-      <div className="p-3 pt-0 grid grid-cols-2 gap-2">
+      <div className="p-2.5 sm:p-3 pt-0 grid grid-cols-2 gap-1.5 sm:gap-2">
         <button
           onClick={() => addToCart && addToCart(product)}
-          className="bg-orange-50 dark:bg-gray-800 border-2 border-orange-200 dark:border-gray-700 text-[#f57224] text-[11px] font-bold py-2 rounded-xl hover:bg-[#f57224] hover:text-white transition shadow-sm active:translate-y-[1px]"
+          className="bg-orange-50 dark:bg-gray-800 border border-orange-200 dark:border-gray-700 text-[#f57224] text-[10px] sm:text-[11px] font-bold py-2 rounded-lg sm:rounded-xl hover:bg-[#f57224] hover:text-white transition shadow-sm active:translate-y-[1px]"
         >
           Add to Cart
         </button>
 
         <button
           onClick={() => startCheckout && startCheckout([product])}
-          className="bg-[#f57224] text-white text-[11px] font-bold py-2 rounded-xl border-2 border-orange-600 hover:bg-orange-600 transition shadow-[0_3px_10px_rgba(245,114,36,0.3)] active:translate-y-[1px]"
+          className="bg-[#f57224] text-white text-[10px] sm:text-[11px] font-bold py-2 rounded-lg sm:rounded-xl border border-orange-600 hover:bg-orange-600 transition shadow-[inset_0_1px_0_rgba(255,255,255,.3),0_4px_10px_rgba(245,114,36,0.3)] active:translate-y-[1px]"
         >
           Buy Now
         </button>
