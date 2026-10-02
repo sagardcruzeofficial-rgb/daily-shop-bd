@@ -280,14 +280,9 @@ export default function App() {
         ) : activeTab === 'Register' ? (
           <div className="py-10"><Register /></div>
         ) : activeTab === 'Home' ? (
-          <div className="max-w-[1300px] mx-auto px-4 py-6">
-            <div className="flex flex-col lg:flex-row gap-6">
-              
-              <CategorySidebar />
-
-              <div className="flex-1 space-y-6">
-                
-                {/* Hero Banner & Quick Categories Slider */}
+          <div className="w-full px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
+            <div className="w-full space-y-5">
+                {/* Full-width hero and quick filters */}
                 <HeroSlider setSelectedCategory={setSelectedCategory} />
 
                 {selectedCategory && selectedCategory !== 'All' && currentSubCategories.length > 0 && (
@@ -319,54 +314,25 @@ export default function App() {
                   </div>
                 )}
 
-                {selectedCategory !== 'All' || selectedSubCategory !== 'All' ? (
-                  <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl shadow-[0_6px_20px_rgba(0,0,0,0.04)] dark:shadow-[0_6px_20px_rgba(0,0,0,0.3)] border-2 border-gray-200 dark:border-gray-800">
-                    <div className="flex justify-between items-center mb-4 border-b-2 border-gray-100 dark:border-gray-800 pb-3">
-                      <h2 className="text-lg font-black text-gray-900 dark:text-gray-100 border-l-4 border-[#f57224] pl-3">
-                        {selectedCategory} {selectedSubCategory !== 'All' ? `> ${selectedSubCategory}` : ''}
-                      </h2>
-                      <span className="text-xs text-orange-600 dark:text-orange-400 font-bold">
-                        {displayProducts.length} Items Found
-                      </span>
+                <section className="crystal-surface crystal-shimmer rounded-2xl p-3 sm:p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3 mb-4 border-b border-slate-200/80 dark:border-slate-700/80 pb-3">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.22em] font-black text-[#f57224]">DailyShopBD marketplace</p>
+                      <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">All Products</h2>
                     </div>
-
-                    {displayProducts.length === 0 ? (
-                      <div className="text-center py-12 text-gray-500 dark:text-gray-400 text-sm font-medium">
-                        No products available in this selection.
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {displayProducts.map((prod) => (
-                          <ProductCard key={prod.id} product={prod} />
-                        ))}
-                      </div>
-                    )}
+                    <span className="rounded-full bg-orange-50 dark:bg-orange-950/40 px-3 py-1.5 text-xs font-black text-[#f57224] border border-orange-200/80 dark:border-orange-800/60">
+                      {displayProducts.length} items
+                    </span>
                   </div>
-                ) : (
-                  categories.map((cat) => {
-                    const categoryProducts = displayProducts.filter(p => p.category === cat);
-                    if (categoryProducts.length === 0) return null;
 
-                    return (
-                      <div key={cat} className="bg-white dark:bg-gray-900 p-5 rounded-2xl shadow-[0_6px_20px_rgba(0,0,0,0.04)] dark:shadow-[0_6px_20px_rgba(0,0,0,0.3)] border-2 border-gray-200 dark:border-gray-800">
-                        <div className="flex justify-between items-center mb-4 border-b-2 border-gray-100 dark:border-gray-800 pb-3">
-                          <h2 className="text-lg font-black text-gray-900 dark:text-gray-100 border-l-4 border-[#f57224] pl-3">
-                            {cat} Section
-                          </h2>
-                          <span className="text-xs text-orange-600 dark:text-orange-400 font-bold">Featured Items</span>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                          {categoryProducts.map((prod) => (
-                            <ProductCard key={prod.id} product={prod} />
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-
-              </div>
+                  {displayProducts.length === 0 ? (
+                    <div className="text-center py-16 text-slate-500 dark:text-slate-400 text-sm font-medium">No products available in this selection.</div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 sm:gap-4">
+                      {displayProducts.map((prod) => <ProductCard key={prod.id} product={prod} />)}
+                    </div>
+                  )}
+                </section>
             </div>
           </div>
         ) : activeTab === 'About Us' ? (
