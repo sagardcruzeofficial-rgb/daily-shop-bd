@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { StoreContext } from '../context/StoreContext';
+import { createProductSlug } from '../utils/slugify';
 
 export default function AdminView() {
   const { 
@@ -28,7 +29,8 @@ export default function AdminView() {
   const [supplierName, setSupplierName] = useState('DropShop');
   const [newSupplierInput, setNewSupplierInput] = useState('');
   const [sizesInput, setSizesInput] = useState('M, L, XL, XXL');
-  const [isFetching, setIsFetching] = useState(false);
+    const [isFetching, setIsFetching] = useState(false);
+    const [publishingProductId, setPublishingProductId] = useState(null);
 
   // Category & Subcategory Inputs
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -182,7 +184,7 @@ export default function AdminView() {
     setSizesInput('M, L, XL, XXL');
   };
 
-  const handleProductSubmit = (e) => {
+    const handleProductSubmit = (e) => {
     e.preventDefault();
 
     const parsedSizes = sizesInput
@@ -200,7 +202,7 @@ export default function AdminView() {
       description, 
       sizes: parsedSizes,
       supplierName: supplierName || 'DropShop', 
-      supplierUrl: supplierUrl.trim() 
+      supplierUrl: supplierUrl.trim()
     };
 
     if (editingProductId) {
@@ -210,11 +212,64 @@ export default function AdminView() {
       alert('Product Updated Successfully!');
       setEditingProductId(null);
     } else {
-      addProduct(productData);
+      addProduct({
+        ...productData,
+        facebookPublished: false,
+        facebookPostId: null,
+        facebookPostUrl: null
+      });
       alert('Product Published Successfully with Barcode Scanner & SKU Tracker!');
     }
 
     setTitle(''); setPrice(''); setSku(''); setBarcode(''); setImage(''); setDescription(''); setSupplierUrl(''); setSizesInput('M, L, XL, XXL');
+  };
+
+  const handlePublishToFacebook = async (product) => {
+    if (!product?.id || !product?.title || product.price === undefined) {
+      alert('Facebook-এ publish করার জন্য product name ও price প্রয়োজন।');
+      return;
+    }
+
+    if (product.facebookPublished && product.facebookPostUrl) {
+      window.open(product.facebookPostUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    const currentOrigin = window.location.origin.replace('admin.', '');
+    const productUrl = `${currentOrigin}/product/${createProductSlug(product.title, product.id)}`;
+    setPublishingProductId(product.id);
+
+    try {
+      const response = await fetch('/api/post-facebook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: product.title,
+          price: product.price,
+          description: product.description,
+          image: product.image,
+          productUrl
+        })
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Facebook publish failed');
+      }
+
+      await updateProduct(product.id, {
+        facebookPublished: true,
+        facebookPostId: data.id,
+        facebookPostUrl: data.postUrl || `https://www.facebook.com/${data.id}`,
+        facebookPublishedAt: new Date().toISOString()
+      });
+      alert('Product সফলভাবে Facebook Page-এ publish হয়েছে!');
+    } catch (error) {
+      console.error('Facebook publish error:', error);
+      alert(`Facebook publish করা যায়নি: ${error.message}`);
+    } finally {
+      setPublishingProductId(null);
+    }
   };
 
   const handleAddCategorySubmit = (e) => {
@@ -633,11 +688,19 @@ export default function AdminView() {
                     >
                       Edit
                     </button>
-                    <button 
+                  <button 
                       onClick={() => deleteProduct(p.id)} 
                       className="bg-red-500 hover:bg-red-600 text-white px-2 py-0.5 text-[10px] rounded transition"
                     >
                       Delete
+                    </button>
+                    <button
+                      onClick={() => handlePublishToFacebook(p)}
+                      disabled={publishingProductId === p.id}
+                      className={`${p.facebookPublished ? 'bg-green-600 hover:bg-green-700' : 'bg-[#1877f2] hover:bg-blue-700'} disabled:opacity-60 text-white px-2 py-0.5 text-[10px] rounded font-bold transition`}
+                      title={p.facebookPublished ? 'Open Facebook post' : 'Publish this product to Facebook'}
+                    >
+                      {publishingProductId === p.id ? 'Publishing...' : p.facebookPublished ? 'Published' : 'Facebook'}
                     </button>
                   </div>
                 </div>
@@ -651,6 +714,11 @@ export default function AdminView() {
                     </a>
                   ) : (
                     <span className="text-gray-400 italic">No supplier link added</span>
+                  )}
+                  {p.facebookPublished && p.facebookPostUrl && (
+                    <a href={p.facebookPostUrl} target="_blank" rel="noreferrer" className="text-green-700 underline font-semibold">
+                      ✓ Facebook post published
+                    </a>
                   )}
                 </div>
               </div>
