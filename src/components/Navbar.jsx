@@ -8,6 +8,7 @@ export default function Navbar() {
   const { currentUser, logout, loading: authLoading } = useAuth();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const countryOptions = ['All Countries', 'Bangladesh', 'India', 'Pakistan', 'United Arab Emirates', 'Saudi Arabia', 'United Kingdom', 'United States'];
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -94,7 +95,13 @@ export default function Navbar() {
           </div>
 
           {/* Search Bar */}
-          <div className="flex-1 max-w-2xl hidden md:flex items-center rounded-2xl overflow-hidden border-2 border-slate-400 bg-white/90 shadow-[0_5px_0_rgba(203,213,225,.85),0_10px_20px_rgba(15,23,42,.12),inset_0_1px_0_rgba(255,255,255,.95)] dark:border-slate-500 dark:bg-slate-900/90 dark:shadow-[0_5px_0_rgba(15,23,42,.9),0_10px_20px_rgba(0,0,0,.3)] focus-within:border-[#f57224] focus-within:ring-4 focus-within:ring-orange-100/70 dark:focus-within:ring-orange-950/40 transition-all">
+          <div className="hidden md:flex flex-1 max-w-2xl items-center gap-2">
+            <div className="crystal-surface rounded-2xl border-2 border-slate-300 px-2 py-2 shadow-[0_5px_0_rgba(203,213,225,.75),0_9px_18px_rgba(15,23,42,.1)] dark:border-slate-600 dark:shadow-[0_5px_0_rgba(15,23,42,.9),0_9px_18px_rgba(0,0,0,.3)]">
+              <select aria-label="Select country" className="max-w-[118px] bg-transparent px-1 text-[11px] font-black text-slate-700 outline-none dark:text-slate-200">
+                {countryOptions.map((country) => <option key={country}>{country}</option>)}
+              </select>
+            </div>
+            <div className="flex min-w-0 flex-1 items-center rounded-2xl overflow-hidden border-2 border-slate-400 bg-white/90 shadow-[0_5px_0_rgba(203,213,225,.85),0_10px_20px_rgba(15,23,42,.12),inset_0_1px_0_rgba(255,255,255,.95)] dark:border-slate-500 dark:bg-slate-900/90 dark:shadow-[0_5px_0_rgba(15,23,42,.9),0_10px_20px_rgba(0,0,0,.3)] focus-within:border-[#f57224] focus-within:ring-4 focus-within:ring-orange-100/70 dark:focus-within:ring-orange-950/40 transition-all">
             <input 
               type="text" 
               placeholder="Search products in DailyShopBD..." 
@@ -108,13 +115,14 @@ export default function Navbar() {
             >
               🔍
             </button>
+            </div>
           </div>
 
           {/* Right Actions */}
           <div className="flex items-center gap-3 text-xs font-semibold text-gray-700 dark:text-gray-300">
             <nav className="hidden xl:flex gap-2 items-center">
               {['Home', 'About Us', 'Privacy Policy', 'Contact Us'].map((item) => (
-                <button key={item} onClick={() => setActiveTab(item)} className={`crystal-surface px-3 py-2 rounded-xl transition-all hover:-translate-y-0.5 hover:text-[#f57224] active:translate-y-0 ${activeTab === item ? 'text-[#f57224] font-black ring-2 ring-orange-200/70 dark:ring-orange-700/50' : ''}`}>{item}</button>
+                <button key={item} onClick={() => setActiveTab(item)} className={`crystal-surface px-3 py-2 rounded-xl border border-white/90 shadow-[0_4px_0_rgba(203,213,225,.7),0_8px_16px_rgba(15,23,42,.12),inset_0_1px_0_rgba(255,255,255,.95)] transition-all hover:-translate-y-1 hover:text-[#f57224] active:translate-y-0 ${activeTab === item ? 'text-[#f57224] font-black ring-2 ring-orange-200/70 dark:ring-orange-700/50' : ''}`}>{item}</button>
               ))}
             </nav>
 
@@ -133,16 +141,17 @@ export default function Navbar() {
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
+                <div className="crystal-surface flex items-center gap-1 rounded-2xl border-2 border-white/90 p-1.5 shadow-[0_6px_0_rgba(203,213,225,.75),0_12px_22px_rgba(15,23,42,.14),inset_0_1px_0_rgba(255,255,255,.95)] dark:border-slate-600 dark:shadow-[0_6px_0_rgba(15,23,42,.9),0_12px_22px_rgba(0,0,0,.35)]">
+                  <span className="text-[10px] font-black text-slate-400">Account</span>
                   <button 
                     onClick={() => setActiveTab('Login')} 
-                    className="crystal-surface text-[#f57224] border border-orange-300/70 px-3 py-2 rounded-xl hover:bg-orange-50 dark:hover:bg-gray-800 transition font-bold active:translate-y-[1px]"
+                    className="crystal-surface text-[#f57224] border border-orange-300/70 px-3 py-2 rounded-xl hover:-translate-y-0.5 hover:bg-orange-50 dark:hover:bg-gray-800 transition font-black shadow-[0_3px_0_rgba(253,186,116,.65)] active:translate-y-0"
                   >
                     Login
                   </button>
                   <button 
                     onClick={() => setActiveTab('Register')} 
-                    className="bg-[#f57224] text-white px-3 py-2 rounded-xl border border-orange-500 hover:bg-orange-600 transition font-bold shadow-[inset_0_1px_0_rgba(255,255,255,.35),0_5px_12px_rgba(245,114,36,.28)] active:translate-y-[1px]"
+                    className="bg-[#f57224] text-white px-3 py-2 rounded-xl border border-orange-500 hover:-translate-y-0.5 hover:bg-orange-600 transition font-black shadow-[inset_0_1px_0_rgba(255,255,255,.35),0_4px_0_rgba(194,65,12,.8),0_8px_14px_rgba(245,114,36,.28)] active:translate-y-0"
                   >
                     Register
                   </button>
