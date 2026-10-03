@@ -71,10 +71,10 @@ export default function Navbar() {
               setActiveTab('Home');
               setSearchQuery('');
             }} 
-            className="cursor-pointer flex items-center gap-3 select-none group"
+            className="crystal-surface cursor-pointer flex items-center gap-3 select-none group rounded-2xl border-2 border-white/90 px-3 py-2 shadow-[0_8px_0_rgba(203,213,225,.75),0_14px_28px_rgba(15,23,42,.16),inset_0_1px_0_rgba(255,255,255,.95)] dark:border-slate-600 dark:shadow-[0_8px_0_rgba(15,23,42,.9),0_14px_28px_rgba(0,0,0,.35),inset_0_1px_0_rgba(255,255,255,.12)]"
           >
             {/* Red Shopping Cart Icon */}
-            <div className="crystal-surface crystal-shimmer text-[#f57224] w-11 h-11 rounded-2xl flex items-center justify-center transform group-hover:-translate-y-0.5 group-hover:scale-105 transition-transform">
+            <div className="crystal-surface crystal-shimmer text-[#f57224] w-10 h-10 rounded-xl flex items-center justify-center border border-orange-200/80 transform group-hover:-translate-y-0.5 group-hover:scale-105 transition-transform">
               <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.60 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
               </svg>
@@ -94,7 +94,7 @@ export default function Navbar() {
           </div>
 
           {/* Search Bar */}
-          <div className="flex-1 max-w-2xl hidden md:flex items-center rounded-2xl overflow-hidden crystal-surface focus-within:border-[#f57224] transition-all">
+          <div className="flex-1 max-w-2xl hidden md:flex items-center rounded-2xl overflow-hidden border-2 border-slate-400 bg-white/90 shadow-[0_5px_0_rgba(203,213,225,.85),0_10px_20px_rgba(15,23,42,.12),inset_0_1px_0_rgba(255,255,255,.95)] dark:border-slate-500 dark:bg-slate-900/90 dark:shadow-[0_5px_0_rgba(15,23,42,.9),0_10px_20px_rgba(0,0,0,.3)] focus-within:border-[#f57224] focus-within:ring-4 focus-within:ring-orange-100/70 dark:focus-within:ring-orange-950/40 transition-all">
             <input 
               type="text" 
               placeholder="Search products in DailyShopBD..." 
