@@ -42,7 +42,9 @@ export default function Navbar() {
     <>
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 font-sans shadow-[0_4px_18px_rgba(15,23,42,.08)] backdrop-blur-xl transition-colors duration-300 dark:border-slate-800 dark:bg-slate-950/95">
         <div className="flex min-h-8 items-center justify-between gap-3 border-b border-slate-800 bg-slate-950 px-4 py-1.5 text-[10px] text-slate-300 sm:px-6 lg:px-8">
+         <marqusee>
           <div className="min-w-0 flex-1 truncate">Welcome to DailyShopBD — Official Online Store</div>
+         </marqusee>
           <div className="hidden shrink-0 items-center gap-4 font-medium text-slate-400 sm:flex">
             <button type="button" onClick={() => setActiveTab('About Us')} className="transition hover:text-white">Help Center</button>
             <button type="button" onClick={() => setActiveTab('Contact Us')} className="transition hover:text-white">Contact</button>
