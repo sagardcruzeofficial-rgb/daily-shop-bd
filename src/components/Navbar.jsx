@@ -44,7 +44,6 @@ export default function Navbar() {
         <div className="flex min-h-8 items-center justify-between gap-3 border-b border-slate-800 bg-slate-950 px-4 py-1.5 text-[10px] text-slate-300 sm:px-6 lg:px-8">
           <marqusee><div className="min-w-0 flex-1 truncate">Welcome to DailyShopBD — Official Online Store</div></marqusee>
           </div>
-        </div>
 
         <div className="mx-auto flex w-full max-w-[1600px] items-center gap-3 px-3 py-3 sm:gap-5 sm:px-5 lg:px-8">
           <button
