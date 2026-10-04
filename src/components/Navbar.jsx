@@ -8,7 +8,6 @@ export default function Navbar() {
   const { currentUser, logout, loading: authLoading } = useAuth();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const countryOptions = ['All Countries', 'Bangladesh', 'India', 'Pakistan', 'United Arab Emirates', 'Saudi Arabia', 'United Kingdom', 'United States'];
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -66,12 +65,6 @@ export default function Navbar() {
           </button>
 
           <div className="hidden min-w-0 flex-1 items-center rounded-xl border border-slate-300 bg-slate-50 shadow-inner transition focus-within:border-[#f57224] focus-within:bg-white focus-within:ring-4 focus-within:ring-orange-100/70 md:flex dark:border-slate-700 dark:bg-slate-900 dark:focus-within:bg-slate-950 dark:focus-within:ring-orange-950/40">
-            <label className="flex shrink-0 items-center border-r border-slate-200 px-3 dark:border-slate-700">
-              <span className="mr-1.5 text-sm">🌐</span>
-              <select aria-label="Select country" className="max-w-[118px] bg-transparent text-[11px] font-semibold text-slate-600 outline-none dark:text-slate-300">
-                {countryOptions.map((country) => <option key={country}>{country}</option>)}
-              </select>
-            </label>
             <input type="text" placeholder="Search products in DailyShopBD..." value={searchQuery || ''} onChange={handleSearchChange} className="min-w-0 flex-1 bg-transparent px-4 py-3 text-xs text-slate-800 outline-none dark:text-slate-100" />
             <button type="button" onClick={() => setActiveTab('Home')} aria-label="Search" className="m-1 rounded-lg bg-[#f57224] px-4 py-2.5 text-white transition hover:bg-orange-600 active:scale-95">🔍</button>
           </div>
