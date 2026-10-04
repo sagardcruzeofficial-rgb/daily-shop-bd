@@ -241,9 +241,12 @@ export default function App() {
     selectedSubCategory !== 'All'
   );
   const displayProducts = hasActiveFilter ? filteredProducts : products;
+  const latestProducts = [...products]
+    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+    .slice(0, 15);
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-950 min-h-screen flex flex-col justify-between font-sans transition-colors duration-300">
+    <div className="min-h-screen flex flex-col justify-between border-x-2 border-slate-200/90 bg-gray-50 font-sans transition-colors duration-300 dark:border-slate-800 dark:bg-gray-950">
       <Navbar />
 
       <main className="flex-1">
@@ -280,39 +283,13 @@ export default function App() {
         ) : activeTab === 'Register' ? (
           <div className="py-10"><Register /></div>
         ) : activeTab === 'Home' ? (
-          <div className="w-full px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
+          <div className="w-full border-y border-slate-200/90 px-2 py-4 sm:px-4 sm:py-6 lg:px-6 dark:border-slate-800">
             <div className="w-full space-y-5">
-                {/* Full-width hero and quick filters */}
-                <HeroSlider setSelectedCategory={setSelectedCategory} />
-
-                {selectedCategory && selectedCategory !== 'All' && currentSubCategories.length > 0 && (
-                  <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.3)] border-2 border-gray-200 dark:border-gray-800 flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 mr-2">Sub-categories:</span>
-                    <button
-                      onClick={() => setSelectedSubCategory && setSelectedSubCategory('All')}
-                      className={`px-3 py-1.5 rounded-xl border-2 text-xs font-bold transition shadow-sm active:translate-y-[1px] ${
-                        selectedSubCategory === 'All'
-                          ? 'bg-[#f57224] border-orange-600 text-white shadow-[0_3px_10px_rgba(245,114,36,0.3)]'
-                          : 'bg-orange-50 dark:bg-gray-800 border-orange-200 dark:border-gray-700 text-[#f57224] hover:bg-orange-100 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      All
-                    </button>
-                    {currentSubCategories.map((subCat) => (
-                      <button
-                        key={subCat}
-                        onClick={() => setSelectedSubCategory && setSelectedSubCategory(subCat)}
-                        className={`px-3 py-1.5 rounded-xl border-2 text-xs font-bold transition shadow-sm active:translate-y-[1px] ${
-                          selectedSubCategory === subCat
-                            ? 'bg-[#f57224] border-orange-600 text-white shadow-[0_3px_10px_rgba(245,114,36,0.3)]'
-                            : 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                        }`}
-                      >
-                        {subCat}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                {/* Compact category rail + latest product slider */}
+                <div className="grid grid-cols-1 gap-3 lg:grid-cols-[190px_minmax(0,1fr)] lg:items-stretch">
+                  <CategorySidebar />
+                  <HeroSlider products={latestProducts} onProductClick={setSelectedProduct} />
+                </div>
 
                 <section className="crystal-surface crystal-shimmer rounded-2xl p-3 sm:p-5">
                   <div className="flex flex-wrap items-center justify-between gap-3 mb-4 border-b border-slate-200/80 dark:border-slate-700/80 pb-3">
